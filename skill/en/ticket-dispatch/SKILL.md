@@ -26,7 +26,7 @@ If the project has no `_tickets/workers.md`, do this first, then take on work.
    - which model each uses;
    - which workers may see this project's code and data. Privacy terms differ between vendors and only the user can judge them;
    - and point out that "edit without asking" means the worker can change this project without confirmation. Get an explicit yes.
-   If nothing is installed, tell the user the options; do not install anything for them.
+   If nothing is installed (or the user wants a different one), follow "No workers yet" below.
 5. **Trial run**: with the user's OK (it costs a little quota), give each chosen worker a tiny practice ticket, e.g. a function and a test in a temp folder, and confirm the command really runs and writes a receipt.
 6. **Write it down** in `_tickets/workers.md` using the format below. Every later dispatch uses these commands. Redo this step when the user changes tools or choices.
 
@@ -44,6 +44,20 @@ If the project has no `_tickets/workers.md`, do this first, then take on work.
 - may see: <the user's decision>
 - trial: <date> passed
 ```
+
+### No workers yet
+
+Most people have no worker tool the first time. Help them pick one and install it:
+
+1. **Lay out the options.** Look up the current facts online first, then tell the user, in plain words, a few kinds of choice: who makes each, how it is paid for (included in a subscription, or pay per use), and where its privacy terms are. Common kinds:
+   - the command-line version of a coding tool, e.g. Cursor's `cursor-agent`, which uses that tool's subscription;
+   - a vendor's own CLI, e.g. Google's Gemini CLI;
+   - an open-source CLI with a pay-per-use model, e.g. `pi`, `opencode` or `aider` with DeepSeek, GLM or Qwen; the user opens an account on the model platform, adds credit and gets an API key.
+   You may recommend; the user chooses. On privacy and training use, go by each vendor's own terms; if you cannot confirm something, say so. Never vouch for a vendor.
+2. **Say exactly what you will install.** Find the tool's **official** install instructions (its website or official repository, not third-party copies). Tell the user what will be installed, from where, with which command. Install only after an explicit yes.
+3. **Install and check.** Run its `--help` to confirm it works. If the install fails, report the error as it is; do not try other sources to force it.
+4. **Logins and keys are the user's job.** Signing in, adding credit and entering API keys: tell the user where to do it and let them do it. Never ask for passwords or keys in the chat, and do not handle them yourself.
+5. Then go back to step 3, read its help, and carry on.
 
 ## 1. Layout
 
@@ -117,4 +131,4 @@ Move the ticket from `doing/` to `done/`. Tell the user in plain words: what wor
 
 - Workers never move tickets, never commit, never review their own work.
 - When the user cuts in mid-task, decide whether it is a new decision or a passing remark. Change the plan only for a new decision; do not tear up the whole plan over one sentence.
-- Ask the user before paid trial runs, before giving a worker edit-without-asking rights, and before handing the code to a new worker.
+- Ask the user before installing software, before paid trial runs, before giving a worker edit-without-asking rights, and before handing the code to a new worker.

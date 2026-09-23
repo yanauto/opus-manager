@@ -2,54 +2,55 @@
 
 English · [中文](README.zh-CN.md)
 
-Turn Claude Code into an engineering manager instead of an expensive typist.
+A Claude Code skill that makes Claude the manager of your project instead of its typist. Claude plans the work as tickets, dispatches them to cheaper coding agents already on your machine, verifies the results itself, and has a model from a different vendor review the code.
 
-You tell Claude what you want built. Claude breaks the job into small, explicit tickets, hands them to cheaper AI command-line tools already on your machine (Cursor, Gemini, DeepSeek via pi, Codex, etc.), reruns the acceptance checks itself, brings in a model from a different vendor to review the diff, and verifies every finding before accepting the work.
+![How it works](docs/architecture-en.png)
 
-Claude's quota is spent entirely on judgment: task decomposition, acceptance testing, and review verification. The heavy lifting goes to fast, cheap pay-as-you-go models. The author's own words: a $20 Claude Pro plan starts to feel like the $200 Max plan.
+## Why
 
-The entire project is a single Claude Code skill folder: instructions, a ticket template, and a receipt template. No servers, no background daemons, no scripts to install. It is built to work on macOS, Linux and Windows, because Claude runs the commands in whatever shell you already have (bash, zsh or PowerShell). So far it has been tested on macOS only.
+Claude (Opus in particular) is strongest at judgment: breaking work down, deciding what "done" means, and telling a real bug from a false alarm. Writing the implementation is where most tokens go, and cheaper models can do that part.
 
-## Why Do This?
+With this skill, Claude's quota is spent on planning, acceptance and verification. The implementation runs on pay-per-use models. In the author's words: **a $20 Claude Pro plan starts to feel like the $200 Max plan.**
 
-Claude (especially Opus) is exceptional at high-level reasoning and catching subtle design bugs, but letting it write repetitive boilerplate burns through quota fast. Pay-as-you-go models cost far less per token.
+## Field numbers
 
-Real numbers from actual daily use:
-- **A full workday on 20% quota**: One colleague handed a whole working day of development to this workflow and consumed just 20% of their weekly Claude Pro allowance. The worker models cost about $5–$6 for that day. One person, one day.
-- **Heavy throughput**: On one of the author's work projects in a single day, worker models (DeepSeek via pi) made 3,617 model calls and consumed ~808M tokens for roughly $10.
-- **Cross-vendor bug hunting**: On another day across 13 tickets on the author's own app, a second-vendor review generated 36 review findings over 3 rounds. Claude verified each finding against the code: 35 were accepted and fixed, 1 was rejected.
+Each row is one day of real use. Small sample; your numbers will differ.
 
-Cheap models still cost money on a pay-per-use basis, but you hit Claude's limits far less often, and Claude still judges every change.
+| Setup | Result |
+|---|---|
+| A colleague (anonymous) hands a full working day to the skill | 20% of the weekly Claude Pro quota; about $5–6 on worker models |
+| Work project: DeepSeek builds, GLM reviews (both via `pi`) | DeepSeek: 3,617 model calls, ~808M tokens, ~$10.24. GLM review: 206 calls, ~$0.51 |
+| Author's app: Grok builds (`cursor-agent`), Gemini reviews (`agy`) | 13 tickets, 3 review rounds, 36 findings; Claude accepted and fixed 35, rejected 1 |
 
-## How It Works
+Worker models are billed per use, so they are not free. The saving is that Claude's quota stops going to implementation.
 
-Once you ask Claude to manage a task, it runs a disciplined delivery cycle inside your repo:
+## How it works
 
-1. **Writes the ticket**: Creates a clear spec in `_tickets/open/` with strict boundaries (allowed files, non-goals) and runnable acceptance commands.
-2. **Dispatches to a local worker**: Moves the ticket to `_tickets/doing/` and runs your chosen CLI tool in the background.
-3. **Accepts the work itself**: The worker files a receipt in `_receipts/`. Claude does not take the worker's word for it—Claude reruns every test and acceptance command itself and inspects the diff.
-4. **Cross-vendor review**: Claude calls a model from a different vendor in read-only mode to audit the changes for logic errors, edge cases, data risks, and security issues.
-5. **Verifies every finding**: Reviewers make mistakes too. Claude opens the cited files and lines to verify each problem. Genuine bugs get dispatched as follow-up fix tickets; false alarms are rejected with a note.
+1. **Ticket.** Claude writes a ticket in `_tickets/open/`: the goal, the files that may change, acceptance commands, and why those commands matter.
+2. **Dispatch.** Claude moves the ticket to `_tickets/doing/` (the move is the lock), signs it with the worker and model, and runs the worker's CLI headless in the background.
+3. **Receipt.** The worker writes `_receipts/<ticket>.receipt.md` with the exact commands it ran and their raw output.
+4. **Acceptance.** Claude reruns every acceptance command itself and checks the diff. A receipt is a claim, not evidence.
+5. **Cross-vendor code review.** A model from a different vendor reviews the change read-only and reports findings with file, line and evidence.
+6. **Verification.** Claude checks each finding against the code. Real ones go back as a fix ticket; wrong ones get a one-line reason. Accepted tickets move to `_tickets/done/`.
 
-Everything is recorded as plain markdown in `_tickets/` and `_receipts/`.
+Everything is plain Markdown in your repository: tickets, receipts, review reports, and Claude's verdicts.
 
-## First Use: Claude Sets It Up With You
+## First run
 
-There are no config files to write by hand. Each worker tool still needs its own login or API key, as usual.
+The first time you use it in a project, Claude sets it up with you:
 
-The first time you tell Claude to use tickets, it inspects your machine:
-- Detects which AI CLI tools are installed (`cursor-agent`, `agy` / `gemini`, `codex`, `pi`, etc.).
-- Runs `--help` on each tool to find headless flags, model arguments, and permission options.
-- Asks you questions one at a time: who builds, who reviews, which models to use, which tools may see your code, and whether workers may edit files without prompting.
-- Runs a quick, low-cost trial ticket to confirm the tool runs cleanly.
-- Saves your setup to `_tickets/workers.md` for all future dispatches.
+- finds which AI CLIs are installed (`cursor-agent`, `agy` / `gemini`, `codex`, `pi`, `opencode`, `aider`, …) and reads their `--help` for headless, auto-approve, model and read-only options;
+- asks you, one question at a time, who builds, who reviews, which models to use, which tools may see your code, and whether workers may edit without asking;
+- runs a small trial ticket and saves the result to `_tickets/workers.md`.
 
-Claude never makes privacy, security, or file-access decisions for you.
+If you have no worker CLI yet, Claude explains the options (subscription-based or pay-per-use, where the privacy terms are) and installs the one you choose from its official source after you say yes. Sign-in and API keys stay with you.
+
+Claude does not make privacy, cost or permission decisions for you.
 
 ## Requirements
 
 - [Claude Code](https://code.claude.com) (Pro is enough)
-- At least one other AI command-line tool: `cursor-agent`, `agy` / `gemini`, `codex`, `pi`, … Whatever you have; Claude checks on first use.
+- At least one other AI command-line tool, or let Claude install one on first run
 
 ## Install
 
@@ -85,11 +86,17 @@ In your project, tell Claude Code:
 
 > Use tickets: add remember-me to the login page.
 
-(You can also say "manage this", "hand it off", or "let other models do this".)
+"Manage this" or "hand it off to other models" also work.
 
-## One tip
+## Tip
 
-Let it run. Cutting in makes Claude stop and verify what you said, which burns quota. Speak up for real decisions; park passing thoughts.
+Let it run. Cutting in mid-task makes Claude stop and verify what you said, which costs quota. Speak up for real decisions; keep passing thoughts for later.
+
+## Status
+
+- macOS: full workflow used daily.
+- Windows: installation and tool discovery confirmed by one user; a full ticket run is not yet confirmed.
+- Linux: expected to work, not yet tested.
 
 ## License
 
