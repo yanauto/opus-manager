@@ -2,7 +2,7 @@
 
 > 派单：<主 AI，如 Claude Code (Opus)> | 日期：YYYY-MM-DD | 工人：<cli:模型>
 > workdir: <相对项目根目录的作业目录；在根目录就删掉这行>
-> claimed-by: （由 dispatch.sh 自动填写）
+> claimed-by: （派单时由主 AI 填写）
 
 ## 目标
 <一句话：这张单解决什么问题。>

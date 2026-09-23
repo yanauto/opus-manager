@@ -2,7 +2,7 @@
 
 > from: <orchestrator, e.g. Claude Code (Opus)> | date: YYYY-MM-DD | worker: <cli:model>
 > workdir: <path relative to the project root; omit for the root>
-> claimed-by: (filled in by dispatch.sh)
+> claimed-by: (the manager fills this in at dispatch)
 
 ## Goal
 <One sentence: what problem this ticket solves.>
