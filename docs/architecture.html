@@ -2,132 +2,87 @@
 <html>
 <head>
 <meta charset="utf-8">
-<!-- Source of docs/architecture-{en,zh}.png. Render: open with ?lang=en or ?lang=zh at 1600x1000. -->
+<!-- Source of docs/architecture-{en,zh}.png. Render at 1600x820 with ?lang=en or ?lang=zh. -->
 <style>
-  :root { --bg:#0f1117; --panel:#161a22; --line:#2a3040; --text:#e8eaf0; --dim:#8b93a3;
-          --claude:#e07a54; --builder:#d9dde6; --review:#7c9bff; --paper:#f4f1ea; --ink:#1d1f24; --green:#3ddc97; }
+  :root { --bg:#141414; --card:#1c1c1e; --line:#3a3a3e; --text:#f2f2f2; --dim:#a8a8ad;
+          --claude:#f08a3c; --builder:#f4ead8; --review:#6fa8ff; --done:#1f6f4a; --doneline:#3ddc97; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { width:1600px; height:1000px; background:var(--bg); color:var(--text);
+  html, body { width:1600px; height:820px; background:var(--bg); color:var(--text);
     font-family: Inter, "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif; }
-  .abs { position:absolute; }
   .mono { font-family: "JetBrains Mono", "SF Mono", Menlo, "PingFang SC", monospace; }
-  h1 { position:absolute; left:60px; top:44px; font-size:40px; font-weight:800; letter-spacing:-0.01em; }
-  .sub { position:absolute; left:60px; top:104px; font-size:22px; color:var(--dim); }
-  .box { position:absolute; border-radius:22px; background:var(--panel); border:2px solid var(--line); padding:26px 28px; }
-  .box h2 { font-size:28px; font-weight:800; margin-bottom:6px; }
-  .box .tag { font-size:19px; color:var(--dim); }
-  .you { left:60px; top:400px; width:250px; height:150px; text-align:center; padding-top:34px; }
-  .mgr { left:400px; top:170px; width:420px; height:710px; border-color:var(--claude); }
-  .mgr h2 { color:var(--claude); }
-  .step { position:absolute; left:28px; right:24px; display:flex; gap:16px; }
-  .num { flex:none; width:40px; height:40px; border-radius:50%; background:var(--claude); color:#1a0f0a; font-weight:800; font-size:21px; display:grid; place-items:center; }
-  .step b { display:block; font-size:24px; margin-bottom:4px; }
-  .step span { font-size:19px; color:var(--dim); line-height:1.45; }
-  .mgr .foot { position:absolute; left:28px; right:28px; bottom:24px; font-size:19px; color:var(--claude); border-top:1px solid var(--line); padding-top:14px; }
-  .folder { position:absolute; left:920px; width:230px; height:80px; border-radius:14px; background:var(--paper); color:var(--ink); font-size:24px; font-weight:700; display:grid; place-items:center; }
-  .folder small { display:block; font-size:16px; font-weight:500; color:#6b5f4d; text-align:center; margin-top:2px; }
-  .colhead { position:absolute; left:860px; top:148px; width:350px; text-align:center; font-size:19px; color:var(--dim); }
-  .wk { left:1250px; width:300px; }
-  .wk ul { list-style:none; margin-top:16px; }
-  .wk li { font-size:21px; padding:8px 0; border-top:1px solid var(--line); }
-  .wk li i { font-style:normal; color:var(--dim); font-size:18px; }
-  .builders { top:170px; height:350px; border-color:#596070; }
-  .reviewer { top:560px; height:290px; border-color:var(--review); }
-  .reviewer h2 { color:var(--review); }
-  .lbl { position:absolute; font-size:18px; color:var(--text); background:var(--bg); padding:2px 8px; border-radius:8px; white-space:nowrap; }
-  .foot2 { position:absolute; left:60px; right:60px; top:922px; font-size:20px; color:var(--dim); text-align:center; }
+  h1 { position:absolute; left:0; right:0; top:70px; text-align:center; font-size:76px; font-weight:900; letter-spacing:.02em; }
+  .sub { position:absolute; left:0; right:0; top:172px; text-align:center; font-size:32px; font-weight:600; color:var(--dim); }
+  .row { position:absolute; left:24px; right:24px; top:286px; height:260px; display:flex; align-items:center; }
+  .side { flex:none; width:150px; height:100px; border:2px solid var(--line); border-radius:14px; background:var(--card);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:28px; font-weight:800; text-align:center; }
+  .side.done { background:var(--done); border-color:var(--doneline); }
+  .side small { font-size:16px; font-weight:500; margin-top:6px; color:#d7f5e6; }
+  .arrow { flex:none; width:30px; height:3px; background:#fff; position:relative; margin:0 2px; }
+  .arrow::after { content:""; position:absolute; right:-2px; top:-7px; border-left:12px solid #fff; border-top:8.5px solid transparent; border-bottom:8.5px solid transparent; }
+  .step { flex:none; width:164px; height:260px; border:2px solid var(--line); border-radius:14px; background:var(--card);
+    display:flex; flex-direction:column; align-items:center; padding-top:18px; text-align:center; }
+  .step .n { font-size:44px; font-weight:900; line-height:1; }
+  .step .t { font-size:28px; font-weight:800; margin-top:10px; white-space:nowrap; }
+  .chip { margin-top:16px; min-width:118px; padding:8px 14px; border-radius:10px; font-size:20px; font-weight:800; color:#1a1a1a; }
+  .chip.c { background:var(--claude); } .chip.b { background:var(--builder); } .chip.r { background:var(--review); }
+  .step .d { margin-top:16px; padding:0 8px; font-size:17px; line-height:1.45; color:#d9d9de; white-space:pre-line; }
   svg { position:absolute; left:0; top:0; }
+  .loop { position:absolute; left:50%; transform:translateX(-50%); top:596px; padding:8px 24px; border:3px solid var(--claude); border-radius:26px;
+    background:var(--bg); color:var(--claude); font-size:24px; font-weight:800; white-space:nowrap; }
+  .legend { position:absolute; left:0; right:0; top:700px; display:flex; justify-content:center; gap:40px; font-size:20px; color:var(--dim); }
+  .legend span { display:inline-flex; align-items:center; gap:10px; }
+  .legend i { width:18px; height:18px; border-radius:5px; display:inline-block; }
+  .foot { position:absolute; left:0; right:0; top:752px; text-align:center; font-size:19px; color:#77777d; }
 </style>
 </head>
 <body>
 <h1 data-t="title"></h1>
 <div class="sub" data-t="sub"></div>
 
-<svg width="1600" height="1000">
-  <defs>
-    <marker id="a" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#8b93a3"/></marker>
-    <marker id="ao" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#e07a54"/></marker>
-    <marker id="ab" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#7c9bff"/></marker>
-    <marker id="ag" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#3ddc97"/></marker>
-  </defs>
-  <g stroke-width="3" fill="none">
-    <path d="M312 475 L396 475" stroke="#e07a54" marker-end="url(#ao)"/>
-    <path d="M822 300 L916 236" stroke="#e07a54" marker-end="url(#ao)"/>
-    <path d="M1035 272 L1035 336" stroke="#8b93a3" marker-end="url(#a)"/>
-    <path d="M1152 380 L1246 318" stroke="#8b93a3" marker-end="url(#a)"/>
-    <path d="M1248 480 L1154 520" stroke="#8b93a3" marker-end="url(#a)"/>
-    <path d="M918 520 L824 505" stroke="#e07a54" marker-end="url(#ao)"/>
-    <path d="M822 680 L1246 660" stroke="#7c9bff" marker-end="url(#ab)"/>
-    <path d="M1248 750 L824 730" stroke="#7c9bff" stroke-dasharray="8 7" marker-end="url(#ab)"/>
-    <path d="M822 790 L916 826" stroke="#3ddc97" marker-end="url(#ag)"/>
-  </g>
-</svg>
-
-<div class="box you"><h2 data-t="you"></h2><div class="tag" data-t="you_tag"></div></div>
-
-<div class="box mgr">
-  <h2 data-t="mgr"></h2><div class="tag" data-t="mgr_tag"></div>
-  <div class="step" style="top:120px"><div class="num">2</div><div><b data-t="s2"></b><span data-t="s2d"></span></div></div>
-  <div class="step" style="top:300px"><div class="num">4</div><div><b data-t="s4"></b><span data-t="s4d"></span></div></div>
-  <div class="step" style="top:480px"><div class="num">6</div><div><b data-t="s6"></b><span data-t="s6d"></span></div></div>
-  <div class="foot" data-t="mgr_foot"></div>
+<div class="row">
+  <div class="side" data-t="you"></div><div class="arrow"></div>
+  <div class="step" id="s1"><div class="n">1</div><div class="t" data-t="t1"></div><div class="chip c">Claude</div><div class="d mono">_tickets/open/</div></div><div class="arrow"></div>
+  <div class="step"><div class="n">2</div><div class="t" data-t="t2"></div><div class="chip c">Claude</div><div class="d" data-t="d2"></div></div><div class="arrow"></div>
+  <div class="step"><div class="n">3</div><div class="t" data-t="t3"></div><div class="chip b" data-t="builder"></div><div class="d" data-t="d3"></div></div><div class="arrow"></div>
+  <div class="step"><div class="n">4</div><div class="t" data-t="t4"></div><div class="chip c">Claude</div><div class="d" data-t="d4"></div></div><div class="arrow"></div>
+  <div class="step"><div class="n">5</div><div class="t" data-t="t5"></div><div class="chip r" data-t="reviewer"></div><div class="d" data-t="d5"></div></div><div class="arrow"></div>
+  <div class="step" id="s6"><div class="n">6</div><div class="t" data-t="t6"></div><div class="chip c">Claude</div><div class="d" data-t="d6"></div></div><div class="arrow"></div>
+  <div class="side done"><span data-t="done"></span><small class="mono">_tickets/done/</small></div>
 </div>
 
-<div class="colhead mono">_tickets/ · _receipts/</div>
-<div class="folder mono" style="top:190px">open/</div>
-<div class="folder mono" style="top:340px">doing/<small data-t="lock"></small></div>
-<div class="folder mono" style="top:480px">_receipts/</div>
-<div class="folder mono" style="top:790px">done/</div>
+<svg width="1600" height="820"><g id="loopline" fill="none" stroke="#f08a3c" stroke-width="4"></g></svg>
+<div class="loop" data-t="loop"></div>
 
-<div class="box wk builders">
-  <h2 data-t="bld"></h2><div class="tag" data-t="bld_tag"></div>
-  <ul><li>cursor-agent <i>· Grok</i></li><li>pi <i>· DeepSeek</i></li><li>gemini / agy <i>· Gemini</i></li><li><i data-t="more"></i></li></ul>
+<div class="legend">
+  <span><i style="background:#f08a3c"></i><b data-t="lg_c"></b></span>
+  <span><i style="background:#f4ead8"></i><b data-t="lg_b"></b></span>
+  <span><i style="background:#6fa8ff"></i><b data-t="lg_r"></b></span>
 </div>
-<div class="box wk reviewer">
-  <h2 data-t="rev"></h2><div class="tag" data-t="rev_tag"></div>
-  <ul><li>agy <i>· Gemini</i></li><li>pi <i>· GLM</i></li><li><i data-t="more"></i></li></ul>
-</div>
-
-<div class="lbl" style="left:318px;top:436px" data-t="l1"></div>
-<div class="lbl" style="left:838px;top:230px" data-t="l2"></div>
-<div class="lbl" style="left:1162px;top:300px" data-t="l3"></div>
-<div class="lbl" style="left:1180px;top:506px" data-t="l3b"></div>
-<div class="lbl" style="left:846px;top:470px" data-t="l4"></div>
-<div class="lbl" style="left:900px;top:632px" data-t="l5"></div>
-<div class="lbl" style="left:920px;top:744px" data-t="l5b"></div>
-<div class="lbl" style="left:846px;top:852px;color:#3ddc97" data-t="l6"></div>
-
-<div class="foot2" data-t="foot"></div>
+<div class="foot" data-t="foot"></div>
 
 <script>
   const T = {
-    en: {
-      title: "Ticket Dispatch: how it works", sub: "Claude manages. Cheaper models do the building. A model from another vendor does the review.",
-      you: "You", you_tag: "say what you want, once",
-      mgr: "Claude · Manager", mgr_tag: "e.g. Opus. Writes no code itself.",
-      s2: "Writes the ticket", s2d: "goal, allowed files, acceptance commands, why they matter",
-      s4: "Accepts the work", s4d: "reruns every acceptance command itself and checks the diff. A receipt is a claim, not evidence.",
-      s6: "Verifies each finding", s6d: "opens the cited line. Real → fix ticket back to open/. Wrong → one-line reason.",
-      mgr_foot: "Claude's quota goes to judgment only.", lock: "moving here = the lock",
-      bld: "Builders", bld_tag: "headless CLIs, cheap, pay per use", rev: "Reviewer", rev_tag: "different vendor, read-only", more: "whatever you have installed",
-      l1: "1  request", l2: "ticket", l3: "3  dispatch", l3b: "receipt", l4: "rerun checks", l5: "5  cross-vendor code review", l5b: "report", l6: "accepted",
-      foot: "One skill folder · plain Markdown files in your repo · bash, zsh or PowerShell · no server"
-    },
-    zh: {
-      title: "工单托管 · 工作原理", sub: "Claude 负责管理，便宜模型负责施工，另一家厂商的模型负责审查。",
-      you: "你", you_tag: "说一次要什么",
-      mgr: "Claude · 经理", mgr_tag: "比如 Opus，不亲自写实现代码",
-      s2: "写工单", s2d: "目标、允许改的文件、验收命令，以及为什么这样验收",
-      s4: "验收", s4d: "亲自重跑每条验收命令、检查改动范围。回执只是说法，不是证据。",
-      s6: "逐条核实审查意见", s6d: "打开对应代码行。成立 → 修复单回到 open/；不成立 → 写明理由。",
-      mgr_foot: "Claude 的额度只花在判断上。", lock: "挪进来就是上锁",
-      bld: "施工", bld_tag: "命令行工人，便宜，按量付费", rev: "审查", rev_tag: "另一家厂商，只读", more: "你装了什么都可以",
-      l1: "1  需求", l2: "工单", l3: "3  派单", l3b: "回执", l4: "重跑验收", l5: "5  异族 Code Review", l5b: "审查报告", l6: "验收通过",
-      foot: "一个 skill 文件夹 · 纯 Markdown 文件放在你的仓库里 · bash、zsh 或 PowerShell · 不需要服务器"
-    }
+    zh: { title:"工单托管 · 工作原理", sub:"Claude 管理，施工模型实现，另一家的模型审查",
+      you:"你说需求", t1:"写工单", t2:"派单", d2:"移入 doing/\n即加锁", t3:"施工与回执", builder:"施工模型", d3:"实现代码\n写入 _receipts/",
+      t4:"验收", d4:"亲自重跑验收命令\n检查改动范围", t5:"异族审查", reviewer:"审查模型", d5:"另一家厂商\n只读 Code Review",
+      t6:"逐条核实", d6:"对照代码\n判断每条审查意见", done:"完成", loop:"问题成立 → 新建修复单 → 回到 open/",
+      lg_c:"Claude：只做判断", lg_b:"施工模型：便宜、按量付费", lg_r:"审查模型：换一家厂商",
+      foot:"一个 skill 文件夹 · 工单和回执都是仓库里的 Markdown 文件 · 不需要服务器" },
+    en: { title:"Ticket Dispatch · How it works", sub:"Claude manages, a builder model implements, another vendor's model reviews",
+      you:"You ask", t1:"Ticket", t2:"Dispatch", d2:"move to doing/\n= the lock", t3:"Build", builder:"Builder", d3:"writes the code\n+ a receipt",
+      t4:"Accept", d4:"reruns checks\nreads the diff", t5:"Review", reviewer:"Reviewer", d5:"different vendor\nread-only review",
+      t6:"Verify", d6:"checks findings\nagainst the code", done:"Done", loop:"Real issue → fix ticket → back to open/",
+      lg_c:"Claude: judgment only", lg_b:"Builder: cheap, pay per use", lg_r:"Reviewer: a different vendor",
+      foot:"One skill folder · tickets and receipts are Markdown files in your repo · no server" }
   };
-  const lang = new URLSearchParams(location.search).get("lang") === "zh" ? "zh" : "en";
+  const lang = new URLSearchParams(location.search).get("lang") === "en" ? "en" : "zh";
   document.querySelectorAll("[data-t]").forEach(el => el.textContent = T[lang][el.dataset.t]);
+  // loop arrow: from the bottom of step 6 back up into the bottom of step 1
+  const a = document.getElementById("s1").getBoundingClientRect(), b = document.getElementById("s6").getBoundingClientRect();
+  const x1 = a.left + a.width / 2, x6 = b.left + b.width / 2, yb = a.bottom, yl = 616, r = 18;
+  document.getElementById("loopline").innerHTML =
+    `<path d="M${x6} ${yb} V${yl - r} Q${x6} ${yl} ${x6 - r} ${yl} H${x1 + r} Q${x1} ${yl} ${x1} ${yl - r} V${yb + 16}"/>` +
+    `<path d="M${x1 - 11} ${yb + 18} L${x1} ${yb} L${x1 + 11} ${yb + 18} Z" fill="#f08a3c" stroke="none"/>`;
 </script>
 </body>
 </html>
