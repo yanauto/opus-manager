@@ -1,4 +1,4 @@
-# 工单托管 · Ticket Dispatch
+# Opus Manager · 工单托管
 
 [English](README.md) · 中文
 
@@ -58,27 +58,27 @@ Claude（尤其是 Opus）最强的是判断：怎么拆任务、什么算做完
 
 最省事的办法：打开 Claude Code，对它说：
 
-> 帮我把 https://github.com/yanauto/ticket-oss 里的 `skill/zh/ticket-dispatch` 装成我的个人 skill。
+> 帮我把 https://github.com/yanauto/opus-manager 里的 `skill/zh/opus-manager` 装成我的个人 skill。
 
 也可以手动安装：
 
 **Mac / Linux**
 
 ```bash
-git clone https://github.com/yanauto/ticket-oss.git
+git clone https://github.com/yanauto/opus-manager.git
 mkdir -p ~/.claude/skills
-cp -R ticket-oss/skill/zh/ticket-dispatch ~/.claude/skills/
+cp -R opus-manager/skill/zh/opus-manager ~/.claude/skills/
 ```
 
 **Windows（PowerShell）**
 
 ```powershell
-git clone https://github.com/yanauto/ticket-oss.git
+git clone https://github.com/yanauto/opus-manager.git
 New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
-Copy-Item -Recurse ticket-oss\skill\zh\ticket-dispatch "$env:USERPROFILE\.claude\skills\"
+Copy-Item -Recurse opus-manager\skill\zh\opus-manager "$env:USERPROFILE\.claude\skills\"
 ```
 
-没装 git 的话，在 GitHub 页面点 Code → Download ZIP，解压后把 `skill/zh/ticket-dispatch` 这个文件夹复制到上面的位置。
+没装 git 的话，在 GitHub 页面点 Code → Download ZIP，解压后把 `skill/zh/opus-manager` 这个文件夹复制到上面的位置。
 
 装好后重新打开 Claude Code。
 

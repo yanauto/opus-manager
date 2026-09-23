@@ -62,13 +62,13 @@
 
 <script>
   const T = {
-    zh: { title:"工单托管 · 工作原理", sub:"Claude 管理，施工模型实现，另一家的模型审查",
+    zh: { title:"Opus Manager · 工作原理", sub:"Claude 管理，施工模型实现，另一家的模型审查",
       you:"你说需求", t1:"写工单", t2:"派单", d2:"移入 doing/\n即加锁", t3:"施工与回执", builder:"施工模型", d3:"实现代码\n写入 _receipts/",
       t4:"验收", d4:"亲自重跑验收命令\n检查改动范围", t5:"异族审查", reviewer:"审查模型", d5:"另一家厂商\n只读 Code Review",
       t6:"逐条核实", d6:"对照代码\n判断每条审查意见", done:"完成", loop:"问题成立 → 新建修复单 → 回到 open/",
       lg_c:"Claude：只做判断", lg_b:"施工模型：便宜、按量付费", lg_r:"审查模型：换一家厂商",
       foot:"一个 skill 文件夹 · 工单和回执都是仓库里的 Markdown 文件 · 不需要服务器" },
-    en: { title:"Ticket Dispatch · How it works", sub:"Claude manages, a builder model implements, another vendor's model reviews",
+    en: { title:"Opus Manager · How it works", sub:"Claude manages, a builder model implements, another vendor's model reviews",
       you:"You ask", t1:"Ticket", t2:"Dispatch", d2:"move to doing/\n= the lock", t3:"Build", builder:"Builder", d3:"writes the code\n+ a receipt",
       t4:"Accept", d4:"reruns checks\nreads the diff", t5:"Review", reviewer:"Reviewer", d5:"different vendor\nread-only review",
       t6:"Verify", d6:"checks findings\nagainst the code", done:"Done", loop:"Real issue → fix ticket → back to open/",

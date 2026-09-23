@@ -1,5 +1,5 @@
 ---
-name: ticket-dispatch
+name: opus-manager
 description: Managed mode: you act as the manager and do not write the code yourself. Turn work into tickets, hand them to other AI command-line tools on the user's machine (cheaper models), then accept the result, get a second vendor to review it, and verify every finding. Use when the user says "use tickets", "manage this", "hand it off", or asks other models to do the work. On first use, find out which workers this machine has and settle the setup with the user.
 ---
 

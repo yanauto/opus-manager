@@ -1,4 +1,4 @@
-# Ticket Dispatch
+# Opus Manager
 
 English · [中文](README.zh-CN.md)
 
@@ -56,27 +56,27 @@ Claude does not make privacy, cost or permission decisions for you.
 
 Easiest: open Claude Code and say
 
-> Install `skill/en/ticket-dispatch` from https://github.com/yanauto/ticket-oss as my personal skill.
+> Install `skill/en/opus-manager` from https://github.com/yanauto/opus-manager as my personal skill.
 
 Or by hand:
 
 **macOS / Linux**
 
 ```bash
-git clone https://github.com/yanauto/ticket-oss.git
+git clone https://github.com/yanauto/opus-manager.git
 mkdir -p ~/.claude/skills
-cp -R ticket-oss/skill/en/ticket-dispatch ~/.claude/skills/
+cp -R opus-manager/skill/en/opus-manager ~/.claude/skills/
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-git clone https://github.com/yanauto/ticket-oss.git
+git clone https://github.com/yanauto/opus-manager.git
 New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
-Copy-Item -Recurse ticket-oss\skill\en\ticket-dispatch "$env:USERPROFILE\.claude\skills\"
+Copy-Item -Recurse opus-manager\skill\en\opus-manager "$env:USERPROFILE\.claude\skills\"
 ```
 
-No git? On GitHub click Code → Download ZIP and copy `skill/en/ticket-dispatch` to the same place.
+No git? On GitHub click Code → Download ZIP and copy `skill/en/opus-manager` to the same place.
 
 Restart Claude Code afterwards.
 
