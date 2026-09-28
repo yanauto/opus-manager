@@ -36,7 +36,7 @@ If the project has no `_tickets/workers.md`, do this first, then take on work. I
      5. **Run detached from the session**: start the worker in the background with `nohup` (bash) or `Start-Process` (PowerShell), send its output to `_receipts/<ticket>.run.log`, and when it ends write `_receipts/<ticket>.status` (exit code and end time). If your session restarts, the worker keeps running.
      6. **Final check**: if no receipt exists when it ends, say so in `.status`.
    - Check each tool's `--help` for where arguments go: with some tools, `-p` takes the very next argument as the prompt, so the prompt must follow `-p` directly. In bash, when a variable is followed directly by non-ASCII text (CJK or full-width punctuation), write `${VAR}`, or bash reads it as part of the name.
-   - **Review script** `review`, taking a ticket name: runs the read-only review command with the prompt from "5. Review with a different vendor", also detached, and writes the report to `_receipts/<ticket>.review.md`.
+   - **Review script** `review`, taking a ticket name: runs the read-only review command with the prompt from "6. Review with a different vendor", also detached, and writes the report to `_receipts/<ticket>.review.md`.
 6. **Trial run**: with the user's OK (it costs a little quota), use the dispatch script to give each chosen worker a tiny practice ticket, e.g. a function and a test in a temp folder, and confirm the script runs end to end and writes a receipt and a `.status` file.
 7. **Write it down** in `_tickets/workers.md` using the format below. Every later dispatch follows it. Redo this step when the user changes tools or choices.
 
@@ -106,7 +106,6 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 - **Acceptance is commands, not opinions.** "`npm test` passes", "open http://localhost:3000/login, tick remember-me, reload, still logged in". The worker must paste the raw output.
 - **Say why the checks exist.** A worker can pass a check and miss the point (a test that asserts nothing). This line tells it, and later the reviewer, what actually matters.
 - **Boundaries are explicit**: which files it may touch; no commits; no moving the ticket.
-- **Tickets that touch a live service keep downtime short.** Between stopping the service and starting it again, only do quick steps such as switching files; backups, large transfers and installs go before the stop or after the restart. Every remote command (`ssh`, `scp` and the like) gets a timeout. One worker stopped a whole group of production services, then started copying a large backup; it hung, and production was down for 19 minutes.
 - **Write two, dispatch one.** Only tickets that can run now go in `open/`. The next one usually depends on the open questions in the last receipt.
 
 ## 3. Dispatch
@@ -118,14 +117,17 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 
 3. **Wait for it to finish.** A ticket often takes minutes to tens of minutes. Check `_receipts/<ticket>.status` to see whether it has ended, then read the receipt. Do not report or guess the result before you have read the receipt.
 
-**Running several tickets at once:**
-- Only run tickets in parallel when the files they change do not overlap.
-- Each ticket works on its own branch (in a git project, `git worktree` gives each ticket its own folder), so they do not get in each other's way.
-- Only you merge, one ticket at a time, after acceptance. Even a worker allowed to commit commits only to its own ticket's branch, and never merges another ticket to catch up with main: that ticket may not have been fixed after review yet.
+## 4. Rules for parallel dispatch
 
-**One fresh session per ticket.** With pay-per-use models, the longer a session gets, the more of it every call has to reread, and that is where most of the money goes. Do not let a worker continue the previous ticket's session. If one ticket runs very long (say, context beyond about 300K tokens), have it wrap up and write the receipt, and put the rest in a new ticket.
+- Run tickets in parallel only when their changes do not overlap. Give each ticket its own branch and work directory; a worker commits only to its own branch and never merges another branch.
+- Put `Ticket: T<N>` in every PR description. Before merging, verify that it matches the current ticket; reject the merge if it does not. If workers may merge, put a command wrapper in front of their merge tool to enforce the same check.
+- Only one ticket may release the same project at a time. The release script first claims an atomic `mkdir` lock that records its owner and expiry; wait if it cannot claim the lock, and take over only after expiry. Release it after deployment and live checks finish.
+- Finish backups, large transfers and long tests before stopping services. Between stop and restart, only switch files and run essential checks; give every remote connection and transfer a timeout. After restart, confirm each service and scheduled job is running.
+- Run multi-step build, review, fix and release chains as a detached script with `nohup` (or the system equivalent). Each ticket writes its stage, latest activity and result to status files in `_receipts/`; provide one summary command that lists every running ticket, stage, latest activity and cost.
+- Record calls, tokens and pay-per-use cost for each ticket. Give each pay-per-use worker a per-ticket budget; at the limit, stop, move the ticket to `blocked/`, and wait for the manager's decision.
+- Start a fresh session for every ticket. Never continue the previous ticket's session; if one ticket passes about 300K tokens of context, write its receipt and put the rest in a new ticket.
 
-## 4. Accept (you, not the worker)
+## 5. Accept (you, not the worker)
 
 A receipt is a claim, not evidence.
 
@@ -137,13 +139,13 @@ A receipt is a claim, not evidence.
 Fail: write a follow-up ticket (T<N>b) with the concrete failure and dispatch it. Do not quietly fix it yourself.
 Pass: if the project uses git, make one commit that names the ticket.
 
-## 5. Review with a different vendor
+## 6. Review with a different vendor
 
 A worker never reviews its own code. Run the review script `_tickets/review.<sh/ps1> <ticket>`. It uses the read-only review command from `workers.md` with the prompt below and saves the reviewer's final answer as `_receipts/<ticket>.review.md` (second round `.review-2.md`; never overwrite):
 
 > You are the code reviewer for one ticket. You run headless: nobody can answer questions. Another model wrote this code; you check it. Ticket: <path>. Receipt: <path>. <Scope: a committed range, or the files listed in the receipt.> Look for real problems only: wrong logic and edge cases, damage to existing data, security holes (secrets, exposed endpoints, skipped approvals), stability (concurrency, timeouts, leaked resources), and tests that do not test what the receipt claims. No style nitpicks. Do not edit any file; you may run read-only commands and the ticket's acceptance commands. Your final answer IS the report: first line "Reviewer: <tool / model> @ <time>"; one-sentence verdict; then per finding: severity (high/medium/low) | file:line | problem | code evidence | fix. Mark anything uncertain as UNSURE. If you found nothing, say so; do not pad.
 
-## 6. Verify every finding
+## 7. Verify every finding
 
 Reviewers are often wrong. Open each cited file and line and confirm the problem exists.
 
@@ -152,7 +154,7 @@ Reviewers are often wrong. Open each cited file and line and confirm the problem
 
 Append your verdicts to the end of the review report.
 
-## 7. Close
+## 8. Close
 
 Move the ticket from `doing/` to `done/`. Tell the user in plain words: what works now, what they may notice, what risk remains.
 
