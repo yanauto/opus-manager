@@ -11,7 +11,7 @@ Only use this workflow when the user asks for it. Otherwise work as usual.
 
 ## 0. First use: learn this machine
 
-If the project has no `_tickets/workers.md`, do this first, then take on work.
+If the project has no `_tickets/workers.md`, do this first, then take on work. If `workers.md` exists but `_tickets/` has no dispatch script (a project from an older version), tell the user this version dispatches through scripts and, with their OK, do only steps 5 and 6 to add them.
 
 1. **Environment**: which OS, and which shell you are using (bash / zsh / PowerShell). Write every later command for that shell.
 2. **Find workers**: check which AI command-line tools are installed. Common ones: `cursor-agent`, `agy`, `codex`, `gemini`, `claude`, `pi`, `opencode`, `aider`, `qwen`; there may be others. Use the shell's own lookup (`command -v` in bash, `Get-Command` in PowerShell).

@@ -11,7 +11,7 @@ description: 托管模式：你当经理，不自己写代码。把活写成工�
 
 ## 零、第一次使用：摸清这台电脑
 
-项目里没有 `_tickets/workers.md` 时，先做这一步，做完再接活。
+项目里没有 `_tickets/workers.md` 时，先做这一步，做完再接活。已有 `workers.md` 但 `_tickets/` 里没有派单脚本（旧版本留下的项目）时，告诉用户新版改用脚本派单，征得同意后只做第 5、6 步，把脚本补上。
 
 1. **看环境**：操作系统、你用的是哪种终端（bash / zsh / PowerShell）。之后所有命令按这个终端的写法来。
 2. **找工人**：检查这台电脑上装了哪些 AI 命令行工具。常见的有 `cursor-agent`、`agy`、`codex`、`gemini`、`claude`、`pi`、`opencode`、`aider`、`qwen`，也可能有别的。用终端自带的方式查（bash 用 `command -v`，PowerShell 用 `Get-Command`）。
