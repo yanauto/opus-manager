@@ -56,7 +56,7 @@ Claude does not make privacy, cost or permission decisions for you.
 ## Requirements
 
 - [Claude Code](https://code.claude.com) (Pro is enough)
-- At least one other AI command-line tool, or let Claude install one on first run
+- At least one other AI command-line tool, or let Claude install one on first run. The author recommends the open-source [pi](https://pi.dev) with an [OpenCode Go](https://opencode.ai/go) subscription: one subscription covers several model vendors, $10 a month when this was written
 
 ## Install
 
