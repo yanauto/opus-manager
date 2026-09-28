@@ -20,21 +20,31 @@ If the project has no `_tickets/workers.md`, do this first, then take on work.
    - how to let it edit files and run commands without asking each time;
    - how to pick a model, and whether it can list its models;
    - whether it has a read-only mode (for reviews).
-   Do not write flags from memory; the help output is the source of truth. If a flag's meaning is unclear, note it and watch what it actually does in the step 5 trial.
+   Do not write flags from memory; the help output is the source of truth. If a flag's meaning is unclear, note it and watch what it actually does in the step 6 trial.
 4. **Report to the user and let them decide.** Briefly, in plain words, list what you found and which models each tool offers. Then ask the user the following, one question at a time, waiting for each answer:
-   - who builds and who reviews (suggest different vendors, but it is their call);
+   - who builds and who reviews (suggest different vendors, but it is their call). There can be more than one builder, split by kind of work, e.g. Chinese copy to one vendor, backend and releases to another;
    - which model each uses;
    - which workers may see this project's code and data. Privacy terms differ between vendors and only the user can judge them;
    - and point out that "edit without asking" means the worker can change this project without confirmation. Get an explicit yes.
    If nothing is installed (or the user wants a different one), follow "No workers yet" below.
-5. **Trial run**: with the user's OK (it costs a little quota), give each chosen worker a tiny practice ticket, e.g. a function and a test in a temp folder, and confirm the command really runs and writes a receipt.
-6. **Write it down** in `_tickets/workers.md` using the format below. Every later dispatch uses these commands. Redo this step when the user changes tools or choices.
+5. **Write the dispatch scripts.** Following the user's choices, write two scripts in `_tickets/`, in this machine's shell (`.sh` for bash, `.ps1` for PowerShell). From now on, dispatch and review go through the scripts; do not hand-assemble commands each time.
+   - **Dispatch script** `dispatch`, taking a ticket name and a worker name. It must:
+     1. **Claim**: move the ticket from `open/` to `doing/`; exit if the move fails. The move is the lock.
+     2. **Sign**: write the real tool name, version, model and time into the ticket's `claimed-by` line. The script writes it; the worker does not report on itself.
+     3. **Locate**: read the ticket's `workdir`, turn it into an absolute path and start the worker there; if the folder does not exist, move the ticket to `blocked/` and exit.
+     4. **Give absolute paths only**: the prompt names the ticket, the receipt template and the receipt by absolute path (prompt text in "3. Dispatch"). Never tell a worker to go and find "the newest ticket": some tools run in their own temp folder, and searching from there can pick up another project's ticket.
+     5. **Run detached from the session**: start the worker in the background with `nohup` (bash) or `Start-Process` (PowerShell), send its output to `_receipts/<ticket>.run.log`, and when it ends write `_receipts/<ticket>.status` (exit code and end time). If your session restarts, the worker keeps running.
+     6. **Final check**: if no receipt exists when it ends, say so in `.status`.
+   - **Review script** `review`, taking a ticket name: runs the read-only review command with the prompt from "5. Review with a different vendor", also detached, and writes the report to `_receipts/<ticket>.review.md`.
+6. **Trial run**: with the user's OK (it costs a little quota), use the dispatch script to give each chosen worker a tiny practice ticket, e.g. a function and a test in a temp folder, and confirm the script runs end to end and writes a receipt and a `.status` file.
+7. **Write it down** in `_tickets/workers.md` using the format below. Every later dispatch follows it. Redo this step when the user changes tools or choices.
 
 ```markdown
 # Workers
 > machine: <OS>, shell: <bash/PowerShell> | created: <date> | confirmed by the user
 
 ## Builder: <name> (<model>)
+- good for: <which kind of work; "everything" if there is only one builder>
 - build command: <full command, with <prompt> as the placeholder>
 - may see: <the user's decision>
 - trial: <date> passed, took <minutes>
@@ -43,6 +53,10 @@ If the project has no `_tickets/workers.md`, do this first, then take on work.
 - read-only review command: <full command>
 - may see: <the user's decision>
 - trial: <date> passed
+
+## Scripts
+- dispatch: `_tickets/dispatch.<sh/ps1> <ticket> <worker>`
+- review: `_tickets/review.<sh/ps1> <ticket>`
 ```
 
 ### No workers yet
@@ -71,7 +85,9 @@ _tickets/
   blocked/   waiting on something outside; say what in the header
   dropped/   abandoned; say why
   workers.md worker setup (from step 0)
-_receipts/   receipts, review reports, run logs
+  dispatch.* dispatch script (from step 0)
+  review.*   review script (from step 0)
+_receipts/   receipts, review reports, run logs, status files
 ```
 
 Ticket and receipt templates are in this skill's `templates/` folder.
@@ -84,17 +100,24 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 - **Acceptance is commands, not opinions.** "`npm test` passes", "open http://localhost:3000/login, tick remember-me, reload, still logged in". The worker must paste the raw output.
 - **Say why the checks exist.** A worker can pass a check and miss the point (a test that asserts nothing). This line tells it, and later the reviewer, what actually matters.
 - **Boundaries are explicit**: which files it may touch; no commits; no moving the ticket.
+- **Tickets that touch a live service keep downtime short.** Between stopping the service and starting it again, only do quick steps such as switching files; backups, large transfers and installs go before the stop or after the restart. Every remote command (`ssh`, `scp` and the like) gets a timeout. One worker stopped a whole group of production services, then started copying a large backup; it hung, and production was down for 19 minutes.
 - **Write two, dispatch one.** Only tickets that can run now go in `open/`. The next one usually depends on the open questions in the last receipt.
 
 ## 3. Dispatch
 
-1. **Lock**: move the ticket from `open/` to `doing/` (`mv` in bash, `Move-Item` in PowerShell). If the move succeeds, it is yours; if it fails, someone else took it, pick another.
-2. **Sign**: fill the ticket's `claimed-by` line with who actually got it: tool, model, time. You write it; the worker does not report on itself.
-3. **Run**: in the project folder (or the ticket's workdir), use the build command from `workers.md` with this prompt in place of `<prompt>`, and save the output to `_receipts/<ticket>.run.log`:
+1. **Pick the worker** by what each builder in `workers.md` is good for.
+2. **Run the script**: `_tickets/dispatch.<sh/ps1> <ticket> <worker>`. Claiming, signing, starting in the workdir and running detached are all done by the script. Do not bypass it with a hand-built command. The prompt the script gives the worker:
 
-   > You are the worker for one ticket. You run headless: nobody can answer questions. Ticket: <path> (already claimed for you; it stays in _tickets/doing/). Read the whole ticket, then every file it lists. Do exactly what it asks, nothing outside its scope. Irreversible actions (deleting data or directories, force-push, sending messages) only if the ticket says so; otherwise list them under open questions. If something is unclear, list it; do not guess. Stop any background process you started before you finish. Do not move the ticket. Do not commit unless the ticket says so. When done, write the receipt to _receipts/<ticket>.receipt.md following <receipt template path>, in the ticket's language. Engine line: <tool / model>. For every acceptance check, paste the exact command and its unedited output. Never invent output.
+   > You are the worker for one ticket. You run headless: nobody can answer questions. Ticket: <absolute ticket path> (already claimed for you; it stays in _tickets/doing/). Read the whole ticket, then every file it lists. Do exactly what it asks, nothing outside its scope. Irreversible actions (deleting data or directories, force-push, sending messages) only if the ticket says so; otherwise list them under open questions. If something is unclear, list it; do not guess. Do not write scripts that walk directories and rewrite file contents; name each file you change. Do not open non-text files such as databases, images or archives unless the ticket names them. Stop any background process you started before you finish. Do not move the ticket. Do not commit unless the ticket says so. Never merge any other branch or PR. When done, write the receipt to <absolute receipt path> following <absolute receipt template path>, in the ticket's language. Engine line: <tool / model>. For every acceptance check, paste the exact command and its unedited output. Never invent output.
 
-4. **Wait for it to finish.** A ticket often takes minutes to tens of minutes. Run it in the background if you can, and look only once it has really ended. Do not report or guess the result before you have read the receipt.
+3. **Wait for it to finish.** A ticket often takes minutes to tens of minutes. Check `_receipts/<ticket>.status` to see whether it has ended, then read the receipt. Do not report or guess the result before you have read the receipt.
+
+**Running several tickets at once:**
+- Only run tickets in parallel when the files they change do not overlap.
+- Each ticket works on its own branch (in a git project, `git worktree` gives each ticket its own folder), so they do not get in each other's way.
+- Only you merge, one ticket at a time, after acceptance. Even a worker allowed to commit commits only to its own ticket's branch, and never merges another ticket to catch up with main: that ticket may not have been fixed after review yet.
+
+**One fresh session per ticket.** With pay-per-use models, the longer a session gets, the more of it every call has to reread, and that is where most of the money goes. Do not let a worker continue the previous ticket's session. If one ticket runs very long (say, context beyond about 300K tokens), have it wrap up and write the receipt, and put the rest in a new ticket.
 
 ## 4. Accept (you, not the worker)
 
@@ -110,7 +133,7 @@ Pass: if the project uses git, make one commit that names the ticket.
 
 ## 5. Review with a different vendor
 
-A worker never reviews its own code. Use the read-only review command from `workers.md` with this prompt, and save its final answer as `_receipts/<ticket>.review.md` (second round `.review-2.md`; never overwrite):
+A worker never reviews its own code. Run the review script `_tickets/review.<sh/ps1> <ticket>`. It uses the read-only review command from `workers.md` with the prompt below and saves the reviewer's final answer as `_receipts/<ticket>.review.md` (second round `.review-2.md`; never overwrite):
 
 > You are the code reviewer for one ticket. You run headless: nobody can answer questions. Another model wrote this code; you check it. Ticket: <path>. Receipt: <path>. <Scope: a committed range, or the files listed in the receipt.> Look for real problems only: wrong logic and edge cases, damage to existing data, security holes (secrets, exposed endpoints, skipped approvals), stability (concurrency, timeouts, leaked resources), and tests that do not test what the receipt claims. No style nitpicks. Do not edit any file; you may run read-only commands and the ticket's acceptance commands. Your final answer IS the report: first line "Reviewer: <tool / model> @ <time>"; one-sentence verdict; then per finding: severity (high/medium/low) | file:line | problem | code evidence | fix. Mark anything uncertain as UNSURE. If you found nothing, say so; do not pad.
 
@@ -129,6 +152,7 @@ Move the ticket from `doing/` to `done/`. Tell the user in plain words: what wor
 
 ## Rules
 
-- Workers never move tickets, never commit, never review their own work.
+- Workers never move tickets, never commit, never review their own work, and never merge another ticket.
+- Workers never write scripts that walk directories and rewrite file contents, and never open non-text files unless the ticket names them.
 - When the user cuts in mid-task, decide whether it is a new decision or a passing remark. Change the plan only for a new decision; do not tear up the whole plan over one sentence.
 - Ask the user before installing software, before paid trial runs, before giving a worker edit-without-asking rights, and before handing the code to a new worker.

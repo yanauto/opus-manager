@@ -2,6 +2,7 @@
 
 > engine: <the real CLI and model you ran as; copy it from the dispatch prompt>
 > finished: YYYY-MM-DD HH:MM
+> branch / commit / PR: <if any; otherwise "none">
 > ticket: stays in _tickets/doing/ for acceptance
 
 ## 1. What I did

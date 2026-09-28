@@ -25,12 +25,14 @@ Each row is one day of real use. Small sample; your numbers will differ.
 | Recruiting SaaS launch sprint day: DeepSeek and GPT build, GLM reviews (all via `pi`) | DeepSeek: 3,528 calls, ~906M tokens, ~$10.5. GPT: 1,135 calls on a Codex subscription. GLM review: 283 calls, ~$0.9. About 12 tickets went through cross-vendor review. [Details](https://github.com/yanauto/opus-manager/issues/1) |
 | Author's app: Grok builds (`cursor-agent`), Gemini reviews (`agy`) | 13 tickets, 3 review rounds, 36 findings; Claude accepted and fixed 35, rejected 1 |
 
+**Over a longer stretch**: in 8 weeks (2026-08-02 to 09-28) the author dispatched 360 tickets across 13 repositories: 340 accepted, 12 dropped, and about one in ten needed a follow-up fix. Of the 227 tickets that recorded their worker, Grok built 131, DeepSeek 81 and Gemini 15. On one work project, Claude checked about 70 cross-vendor review findings one by one: about 61 held up and 4 did not.
+
 Worker models are billed per use, so they are not free. The saving is that Claude's quota stops going to implementation.
 
 ## How it works
 
 1. **Ticket.** Claude writes a ticket in `_tickets/open/`: the goal, the files that may change, acceptance commands, and why those commands matter.
-2. **Dispatch.** Claude moves the ticket to `_tickets/doing/` (the move is the lock), signs it with the worker and model, and runs the worker's CLI headless in the background.
+2. **Dispatch.** A dispatch script that Claude writes on first run moves the ticket to `_tickets/doing/` (the move is the lock), signs it with the real worker and model, and starts the worker headless. The worker runs detached from Claude's session, so a session restart does not stop it.
 3. **Receipt.** The worker writes `_receipts/<ticket>.receipt.md` with the exact commands it ran and their raw output.
 4. **Acceptance.** Claude reruns every acceptance command itself and checks the diff. A receipt is a claim, not evidence.
 5. **Cross-vendor code review.** A model from a different vendor reviews the change read-only and reports findings with file, line and evidence.
@@ -44,6 +46,7 @@ The first time you use it in a project, Claude sets it up with you:
 
 - finds which AI CLIs are installed (`cursor-agent`, `agy` / `gemini`, `codex`, `pi`, `opencode`, `aider`, …) and reads their `--help` for headless, auto-approve, model and read-only options;
 - asks you, one question at a time, who builds, who reviews, which models to use, which tools may see your code, and whether workers may edit without asking;
+- writes a dispatch script and a review script for your shell, so every ticket is claimed, signed and started the same way;
 - runs a small trial ticket and saves the result to `_tickets/workers.md`.
 
 If you have no worker CLI yet, Claude explains the options (subscription-based or pay-per-use, where the privacy terms are) and installs the one you choose from its official source after you say yes. Sign-in and API keys stay with you.
