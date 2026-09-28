@@ -106,6 +106,7 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 - **Acceptance is commands, not opinions.** "`npm test` passes", "open http://localhost:3000/login, tick remember-me, reload, still logged in". The worker must paste the raw output.
 - **Say why the checks exist.** A worker can pass a check and miss the point (a test that asserts nothing). This line tells it, and later the reviewer, what actually matters.
 - **Boundaries are explicit**: which files it may touch; no commits; no moving the ticket.
+- **Tickets that touch a live service keep downtime short.** Finish backups, large transfers and long tests before stopping services. Between stop and restart, only switch files and run essential checks; give every remote connection and transfer a timeout. After restart, confirm each service and scheduled job is running. One worker stopped a whole group of production services, then started copying a large backup; it hung, and production was down for 19 minutes.
 - **Write two, dispatch one.** Only tickets that can run now go in `open/`. The next one usually depends on the open questions in the last receipt.
 
 ## 3. Dispatch
@@ -119,12 +120,12 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 
 ## 4. Rules for parallel dispatch
 
-- Run tickets in parallel only when their changes do not overlap. Give each ticket its own branch and work directory; a worker commits only to its own branch and never merges another branch.
-- Put `Ticket: T<N>` in every PR description. Before merging, verify that it matches the current ticket; reject the merge if it does not. If workers may merge, put a command wrapper in front of their merge tool to enforce the same check.
-- Only one ticket may release the same project at a time. The release script first claims an atomic `mkdir` lock that records its owner and expiry; wait if it cannot claim the lock, and take over only after expiry. Release it after deployment and live checks finish.
-- Finish backups, large transfers and long tests before stopping services. Between stop and restart, only switch files and run essential checks; give every remote connection and transfer a timeout. After restart, confirm each service and scheduled job is running.
+- Run tickets in parallel only when their changes do not overlap. Give each ticket its own branch and work directory (in a git project, `git worktree`). Only you merge, one ticket at a time, after acceptance; even a worker allowed to commit commits only to its own branch and never merges another branch: that ticket may not have been fixed after review yet.
+- The next two apply only when the user lets workers open PRs or release:
+  - Put `Ticket: T<N>` in every PR description. Before merging, verify that it matches the current ticket; reject the merge if it does not. If workers may merge, put a command wrapper in front of their merge tool to enforce the same check.
+  - Only one ticket may release the same project at a time. The release script first claims an atomic `mkdir` lock that records its owner and expiry; wait if it cannot claim the lock, and take over only after expiry. Release it after deployment and live checks finish.
 - Run multi-step build, review, fix and release chains as a detached script with `nohup` (or the system equivalent). Each ticket writes its stage, latest activity and result to status files in `_receipts/`; provide one summary command that lists every running ticket, stage, latest activity and cost.
-- Record calls, tokens and pay-per-use cost for each ticket. Give each pay-per-use worker a per-ticket budget; at the limit, stop, move the ticket to `blocked/`, and wait for the manager's decision.
+- When the tool reports usage (pi does), record calls, tokens and pay-per-use cost for each ticket; some tools report nothing in headless mode, so skip it there. For pay-per-use workers, a per-ticket budget is recommended: at the limit, stop, move the ticket to `blocked/`, and wait for your decision.
 - Start a fresh session for every ticket. Never continue the previous ticket's session; if one ticket passes about 300K tokens of context, write its receipt and put the rest in a new ticket.
 
 ## 5. Accept (you, not the worker)
