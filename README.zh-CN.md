@@ -102,6 +102,10 @@ Copy-Item -Recurse opus-manager\skill\zh\opus-manager "$env:USERPROFILE\.claude\
 - Windows：一位用户已确认安装和工具查找正常，完整的派单流程尚未确认。
 - Linux：按设计可用，尚未测试。
 
+## 参与贡献
+
+欢迎提 issue 和 PR，规矩见 [CONTRIBUTING.zh-CN.md](CONTRIBUTING.zh-CN.md)。
+
 ## 许可证
 
 MIT

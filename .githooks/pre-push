@@ -1,0 +1,31 @@
+#!/bin/bash
+# pre-push: run gitleaks over the commits about to be pushed; refuse the push on a hit.
+# Enable once per clone: git config core.hooksPath .githooks
+set -u
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+ROOT="$(git rev-parse --show-toplevel)"
+LOG="${TMPDIR:-/tmp}/opus-manager-gitleaks.log"
+FAIL=0
+ZERO="0000000000000000000000000000000000000000"
+RANGES=()
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$ZERO" ] && continue
+  if [ "$remote_sha" = "$ZERO" ]; then
+    RANGES+=("$local_sha --not --remotes=origin")
+  else
+    RANGES+=("$remote_sha..$local_sha")
+  fi
+done
+
+if command -v gitleaks >/dev/null 2>&1; then
+  for r in "${RANGES[@]+"${RANGES[@]}"}"; do
+    if ! gitleaks git --redact --no-banner --exit-code 1 --log-opts "$r" "$ROOT" >"$LOG" 2>&1; then
+      echo "⛔ [pre-push] gitleaks found a possible secret in the commits being pushed. Push refused. Details: $LOG"
+      FAIL=1
+    fi
+  done
+else
+  echo "⚠️ [pre-push] gitleaks is not installed, so the local secret check was skipped (CI still runs it). Install: https://github.com/gitleaks/gitleaks#installing"
+fi
+
+exit $FAIL

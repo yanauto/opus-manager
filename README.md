@@ -100,6 +100,10 @@ Let it run. Cutting in mid-task makes Claude stop and verify what you said, whic
 - Windows: installation and tool discovery confirmed by one user; a full ticket run is not yet confirmed.
 - Linux: expected to work, not yet tested.
 
+## Contributing
+
+Issues and PRs are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 MIT

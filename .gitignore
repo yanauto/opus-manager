@@ -1,1 +1,11 @@
 .DS_Store
+
+# Never commit credentials or AI session logs
+.env
+.env.*
+*.pem
+*.key
+*.p12
+**/secrets/
+.claude/sessions/
+*.jsonl
