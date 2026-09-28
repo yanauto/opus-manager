@@ -58,7 +58,7 @@ Claude（尤其是 Opus）最强的是判断：怎么拆任务、什么算做完
 ## 环境要求
 
 - [Claude Code](https://code.claude.com)（Pro 即可）
-- 至少一个其他 AI 命令行工具；没有的话，第一次使用时让 Claude 帮你装
+- 至少一个其他 AI 命令行工具；没有的话，第一次使用时让 Claude 帮你装。作者推荐开源的 [pi](https://pi.dev) 配 [OpenCode Go](https://opencode.ai/go) 订阅：一份订阅就能用多家模型，写这段时每月 10 美元
 
 ## 安装
 
