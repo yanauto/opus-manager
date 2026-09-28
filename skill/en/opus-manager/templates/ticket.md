@@ -16,6 +16,8 @@
 2. No secrets in code, docs or logs.
 3. No git commit / push (the orchestrator commits after acceptance).
 4. Leave this ticket file in `_tickets/doing/`.
+5. No scripts that walk directories and rewrite file contents; name each file you change.
+6. Do not open non-text files such as databases, images or archives (unless this ticket names them).
 
 ## Acceptance (commands, not opinions)
 1. `<command>` → <expected result, e.g. all tests pass>
