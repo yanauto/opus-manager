@@ -2,16 +2,13 @@
 
 English · [中文](CONTRIBUTING.zh-CN.md)
 
-Thanks for helping. This page explains who can change what, and what a good change looks like.
+Thanks for helping. This page explains how changes land and what a good change looks like.
 
-## Who maintains this
+## How changes land
 
-- [@yanauto](https://github.com/yanauto): owner. Every change to `main` needs their approval.
-- [@dodocat-sun](https://github.com/dodocat-sun): maintainer. Can open branches, triage issues and review PRs.
+`main` is protected. All changes go through a pull request and need a review before they are merged. Force pushes and branch deletion are blocked.
 
-`main` is protected. All changes go through a pull request, and a PR can only be merged after @yanauto approves it (see [`.github/CODEOWNERS`](.github/CODEOWNERS)). Force pushes and branch deletion are blocked.
-
-Anyone else is welcome to fork the repository and open a PR the same way.
+Anyone is welcome to fork the repository and open a PR.
 
 ## Before you start
 

@@ -2,16 +2,13 @@
 
 [English](CONTRIBUTING.md) · 中文
 
-谢谢你愿意帮忙。这页说明谁能改什么，以及怎样的改动容易被合并。
+谢谢你愿意帮忙。这页说明改动怎么合并，以及什么样的改动更容易被接受。
 
-## 谁在维护
+## 改动怎么合并
 
-- [@yanauto](https://github.com/yanauto)：仓库主人。任何改动进 `main` 都要经他批准。
-- [@dodocat-sun](https://github.com/dodocat-sun)：维护者。可以建分支、整理 issue、审 PR。
+`main` 分支受保护：所有改动都走 PR，经过审查后合并。禁止强推，禁止删除分支。
 
-`main` 分支受保护：所有改动都走 PR，PR 必须经 @yanauto 批准才能合并（见 [`.github/CODEOWNERS`](.github/CODEOWNERS)）。禁止强推，禁止删除分支。
-
-其他人也欢迎 fork 后按同样的方式提 PR。
+欢迎任何人 fork 后提 PR。
 
 ## 动手之前
 
