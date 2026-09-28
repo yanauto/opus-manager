@@ -22,6 +22,7 @@ Each row is one day of real use. Small sample; your numbers will differ.
 |---|---|
 | A colleague (anonymous) hands a full working day to the skill | 20% of the weekly Claude Pro quota; about $5–6 on worker models |
 | Work project: DeepSeek builds, GLM reviews (both via `pi`) | DeepSeek: 3,617 model calls, ~808M tokens, ~$10.24. GLM review: 206 calls, ~$0.51 |
+| A user hands over a recruiting SaaS launch sprint day: DeepSeek and GPT split the build work, GLM reviews (all via `pi`) | DeepSeek: 3,528 calls, ~906M tokens, ~$10.5; GPT-5.6 Sol: 1,135 calls via a Codex subscription; GLM review: 283 calls, ~$0.9; about 12 tickets completed cross-vendor review. See #1 |
 | Author's app: Grok builds (`cursor-agent`), Gemini reviews (`agy`) | 13 tickets, 3 review rounds, 36 findings; Claude accepted and fixed 35, rejected 1 |
 
 Worker models are billed per use, so they are not free. The saving is that Claude's quota stops going to implementation.
