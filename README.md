@@ -14,6 +14,19 @@ Claude (Opus in particular) is strongest at judgment: breaking work down, decidi
 
 With this skill, Claude's quota is spent on planning, acceptance and verification. The implementation runs on pay-per-use models. In the author's words: **a $20 Claude Pro plan starts to feel like the $200 Max plan.**
 
+## Why the manager never writes the code
+
+The point is not only saving quota. It is keeping Claude's context clean.
+
+When Claude writes the code itself, its context fills up with code: files it opened, diffs, test logs, failed attempts. The plan, what "done" means, and why earlier calls were made get pushed aside or compacted away.
+
+Here Claude only sees tickets, receipts, the diff of each ticket and review findings. The implementation happens in another tool's session. So Claude stays on the project as a whole and keeps making decisions: what comes next, whether a result is really done, which review finding is real.
+
+Two things follow from that:
+
+- **The project keeps moving.** A colleague's project had been stuck for about two months on DeepSeek and GLM, then on GPT. With Claude managing and DeepSeek building, most of it moved forward in two days. One project, one data point.
+- **You can step away.** Claude plans, dispatches, verifies and sends fixes back on its own. The author and that colleague have each handed full working days to it. You come back to the decisions that are actually yours.
+
 ## Field numbers
 
 Each row is one day of real use. Small sample; your numbers will differ.
