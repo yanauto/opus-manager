@@ -8,7 +8,7 @@
 
 ![opus-manager 真实运行录屏（加速）](docs/demo.gif)
 
-*真实运行录屏，约加速 20 倍：Claude 写工单，DeepSeek 施工，Claude 重跑验收，GLM 审查，Claude 逐条核实后提交。全程约 4 分钟。*
+*真实运行录屏，约加速 20 倍：Claude 写工单，DeepSeek 施工，Claude 重跑验收并提交，GLM 审查，Claude 逐条核实审查意见。全程约 4 分钟。*
 
 ![工作原理](docs/architecture-zh.png)
 
