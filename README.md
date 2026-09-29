@@ -4,13 +4,28 @@ English · [中文](README.zh-CN.md)
 
 > 国内下载 (China mirror): [yan-auto.me/zh/downloads/opus-manager](https://yan-auto.me/zh/downloads/opus-manager/)
 
-A Claude Code skill that makes Claude the manager of your project instead of its typist. Claude plans the work as tickets, dispatches them to cheaper coding agents already on your machine, verifies the results itself, and has a model from a different vendor review the code.
+**Unattended.** Hand the work over and walk away.
+
+A Claude Code skill that makes Claude the manager of your project instead of its typist. Claude plans the work as tickets, dispatches them to cheaper coding agents already on your machine, verifies the results itself, has a model from a different vendor review the code, and keeps going while you are gone.
 
 ![A real run of opus-manager, sped up](docs/demo.gif)
 
 *A real run. It took about 4 minutes; the GIF plays most of it at 20× speed. Claude writes the ticket, DeepSeek builds it, Claude reruns the checks and commits, GLM reviews, Claude checks each finding.*
 
 ## Why
+
+### It keeps going while you're away
+
+Tell Claude what you want done and leave. It asks the questions it would otherwise interrupt you with before you go, then works down the queue: dispatch, accept, review, fix, next. Decisions it may not make alone go into a list for you, and it carries on with other tickets. When you are back, a short report tells you what works, what is waiting for you, and what it cost.
+
+Two real runs:
+
+- **A colleague's release day (a recruiting SaaS).** He left at 17:30. It kept going on its own until 22:28: 9 tickets through build → review by a second vendor → fix → release → live check, including 2 skipped reviews it caught and ran itself. He checked in once. A morning report came out at 08:30 the next day.
+- **The author's work project, overnight.** 00:23 to 07:45, 7.4 hours with no messages from him: Claude claimed 9 tickets and got 10 receipts back from workers.
+
+What can stop it: the computer going to sleep, a permission prompt nobody answers, and Claude's own usage limits. On a Pro plan, one busy morning used about 83% of a 5-hour window. When the limit is hit Claude stops; workers already started finish, and after the reset you tell it to continue.
+
+### Your Claude quota goes to judgment
 
 Claude (Opus in particular) is strongest at judgment: breaking work down, deciding what "done" means, and telling a real bug from a false alarm. Writing the implementation is where most tokens go, and cheaper models can do that part.
 
@@ -27,7 +42,7 @@ Here Claude only sees tickets, receipts, the diff of each ticket and review find
 What that gets you:
 
 - **The project keeps moving.** A friend's project had been stuck for about two months on DeepSeek and GLM, then on GPT. With Claude managing and DeepSeek building, most of it moved forward in two days. One project, one data point.
-- **You can step away.** Claude plans, dispatches, verifies and sends fixes back on its own. The author and a colleague have each handed full working days to it. You come back to the decisions that are actually yours.
+- **You can step away.** Claude plans, dispatches, verifies and sends fixes back on its own, as in the colleague's run above. You come back to the decisions that are actually yours.
 
 ## Field numbers
 
@@ -110,6 +125,12 @@ In your project, tell Claude Code:
 > Use tickets: add remember-me to the login page.
 
 "Manage this" or "hand it off to other models" also work.
+
+To leave it running, say so:
+
+> I'm off for the evening. Run this unattended: fix the checkout bug, then add CSV export.
+
+Claude agrees with you on what it may do without asking, writes the queue to `_tickets/queue.md`, and keeps a one-line-per-ticket log in `_receipts/progress.md` that you can read instead of asking how it is going.
 
 ## Tip
 
