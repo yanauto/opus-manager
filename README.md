@@ -6,6 +6,10 @@ English · [中文](README.zh-CN.md)
 
 A Claude Code skill that makes Claude the manager of your project instead of its typist. Claude plans the work as tickets, dispatches them to cheaper coding agents already on your machine, verifies the results itself, and has a model from a different vendor review the code.
 
+![A real run of opus-manager, sped up](docs/demo.gif)
+
+*A real run, sped up about 20×: Claude writes the ticket, DeepSeek builds it, Claude reruns the checks, GLM reviews, Claude verifies each finding and commits. About 4 minutes end to end.*
+
 ![How it works](docs/architecture-en.png)
 
 ## Why

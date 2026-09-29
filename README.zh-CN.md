@@ -6,6 +6,10 @@
 
 一个 Claude Code skill，让 Claude 当项目经理，不当码农。Claude 把需求拆成工单，派给你电脑上更便宜的编程 Agent 去实现，自己验收结果，再交给另一家厂商的模型做异族 Code Review。
 
+![opus-manager 真实运行录屏（加速）](docs/demo.gif)
+
+*真实运行录屏，约加速 20 倍：Claude 写工单，DeepSeek 施工，Claude 重跑验收，GLM 审查，Claude 逐条核实后提交。全程约 4 分钟。*
+
 ![工作原理](docs/architecture-zh.png)
 
 ## 为什么
