@@ -27,9 +27,16 @@ import os
 import re
 import sys
 import tempfile
+import time
+import urllib.error
 import urllib.request
 
 MODELS_DEV = "https://models.dev/api.json"
+AA_API = "https://artificialanalysis.ai/api/v2/data/llms/models"
+AA_SITE = "https://artificialanalysis.ai/"
+AA_CREDIT = ("source: Artificial Analysis - %s (free API, data used under their terms; "
+             "attribution required)" % AA_SITE)
+AA_NEAR = 1.25  # price multiple that still counts as "close to the frontier"
 
 UNKNOWN = {"", "-", "?", "未知", "unknown", "n/a", "na", "none"}
 FIELDS = ["date", "ticket", "role", "tool", "model", "channel",
@@ -306,6 +313,124 @@ def fetch_prices(cache_path=None):
     return prices
 
 
+def aa_key(args):
+    return (args.aa_key
+            or os.environ.get("ARTIFICIAL_ANALYSIS_API_KEY")
+            or os.environ.get("AA_API_KEY"))
+
+
+def aa_fetch(api_key, cache_path, max_age=86400, refresh=False):
+    """One call to the free API, then a local snapshot. No Artificial Analysis data in the repo."""
+    if cache_path and not refresh and os.path.exists(cache_path):
+        if time.time() - os.path.getmtime(cache_path) < max_age:
+            with open(cache_path, encoding="utf-8") as handle:
+                return json.load(handle), "cache"
+    request = urllib.request.Request(AA_API, headers={
+        "x-api-key": api_key, "User-Agent": "value-report.py"})
+    raw = urllib.request.urlopen(request, timeout=30).read()
+    snapshot = json.loads(raw)
+    if cache_path:
+        try:
+            with open(cache_path, "w", encoding="utf-8") as handle:
+                json.dump(snapshot, handle)
+        except OSError as exc:
+            print("warning: could not write the snapshot to %s (%s)" % (cache_path, exc),
+                  file=sys.stderr)
+    return snapshot, "api"
+
+
+def aa_models(snapshot):
+    """Every model that has both an intelligence score and a price."""
+    out = []
+    for model in snapshot.get("data", []):
+        intel = (model.get("evaluations") or {}).get("artificial_analysis_intelligence_index")
+        pricing = model.get("pricing") or {}
+        price = pricing.get("price_1m_blended_3_to_1")
+        if price is None:
+            price = pricing.get("price_1m_input_tokens")
+        if intel is None or price is None or float(price) <= 0:
+            continue
+        name = model.get("name") or model.get("slug") or model.get("id")
+        out.append({"name": str(name), "slug": str(model.get("slug") or ""),
+                    "intel": float(intel), "price": float(price)})
+    return out
+
+
+def pareto_frontier(models):
+    """Models nothing else beats on price and intelligence at the same time.
+
+    Cheapest first: a model stays on the frontier only while it is smarter than
+    every cheaper one. Everything else is dominated by some point on the line.
+    """
+    ordered = sorted(models, key=lambda m: (m["price"], -m["intel"], m["name"]))
+    front, best = [], None
+    for model in ordered:
+        if best is None or model["intel"] > best:
+            front.append(model)
+            best = model["intel"]
+    return front
+
+
+def aa_mark(model, frontier):
+    """on = on the frontier, near = a little worse than it, inside = well behind it."""
+    if any(p["name"] == model["name"] and p["price"] == model["price"]
+           and p["intel"] == model["intel"] for p in frontier):
+        return "on"
+    better = [p for p in frontier if p["intel"] >= model["intel"]]
+    if not better:
+        return "on"
+    cheapest = min(better, key=lambda p: p["price"])
+    return "near" if model["price"] <= cheapest["price"] * AA_NEAR else "inside"
+
+
+def aa_flat(text):
+    return re.sub(r"[^a-z0-9]", "", str(text).lower())
+
+
+def aa_lookup(name, models):
+    """Match a ledger model id against the names, slugs and ids the API returns."""
+    wanted = aa_flat(name.split(":")[0])
+    if not wanted:
+        return None
+    for model in models:
+        if wanted in (aa_flat(model["slug"]), aa_flat(model["name"])):
+            return model
+    for model in models:
+        flat = aa_flat(model["slug"])
+        if len(flat) >= 6 and (flat in wanted or wanted in flat):
+            return model
+    return None
+
+
+def aa_report(groups, args, cache_used):
+    snapshot, origin = cache_used
+    models = aa_models(snapshot)
+    if not models:
+        print("warning: the Artificial Analysis snapshot has no model with both a score and a price",
+              file=sys.stderr)
+        return
+    frontier = pareto_frontier(models)
+    print()
+    print("== performance / price frontier (first filter, before the ledger) ==")
+    print(AA_CREDIT)
+    print("snapshot: %s, %d models, %d on the frontier" % (origin, len(models), len(frontier)))
+    print("on = nothing is cheaper and smarter at once | near = a slightly better point exists "
+          "| inside = a clearly better point exists")
+    head = "%-26s %-28s %8s %14s %7s" % ("model (ledger)", "Artificial Analysis", "score",
+                                          "$/1M blended", "mark")
+    print(head)
+    print("-" * len(head))
+    for got in sorted(groups, key=lambda g: g["model"]):
+        match = aa_lookup(got["model"], models)
+        if not match:
+            print("%-26s %-28s %8s %14s %7s" % (
+                got["model"][:26], "no match in the snapshot", "-", "-", "-"))
+            continue
+        print("%-26s %-28s %8.1f %14.2f %7s" % (
+            got["model"][:26], match["name"][:28], match["intel"], match["price"],
+            aa_mark(match, frontier)))
+
+
 def selftest():
     here = os.path.dirname(os.path.abspath(__file__))
     ledger = os.path.join(here, "value-ledger.example.tsv")
@@ -335,7 +460,6 @@ def selftest():
         "2026-09-01\tT1\tbuild\tpi\tdeepseek-flash:max\tmetered\t120K\t800K\t40K\t12\t0.51\tfirst-pass\tunknown",
     ]
     import tempfile
-    import tempfile
     with tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False, encoding="utf-8") as tmp:
         tmp.write("\n".join(english) + "\n")
         tmp_path = tmp.name
@@ -344,6 +468,33 @@ def selftest():
         assert len(alt) == 1 and alt[0]["qualified"] and alt[0]["cost_val"] == 0.51, alt
     finally:
         os.unlink(tmp_path)
+
+    # the frontier, offline: nothing here touches the network
+    smoke = [
+        {"name": "cheap and weak", "slug": "cheap-weak", "intel": 20.0, "price": 0.5},
+        {"name": "middle", "slug": "middle", "intel": 40.0, "price": 2.0},
+        {"name": "expensive carrot", "slug": "carrot", "intel": 55.0, "price": 9.0},
+        {"name": "dominated", "slug": "dominated", "intel": 38.0, "price": 4.0},
+        {"name": "near miss", "slug": "near-miss", "intel": 39.5, "price": 2.1},
+        {"name": "wasteful", "slug": "wasteful", "intel": 41.0, "price": 12.0},
+    ]
+    front = pareto_frontier(smoke)
+    assert [m["name"] for m in front] == ["cheap and weak", "middle", "expensive carrot"], front
+    marks = {m["name"]: aa_mark(m, front) for m in smoke}
+    assert marks["middle"] == "on" and marks["near miss"] == "near", marks
+    assert marks["dominated"] == "inside" and marks["wasteful"] == "inside", marks
+    assert aa_lookup("middle:high", smoke)["name"] == "middle", "model id matching"
+
+    snapshot = {"data": [
+        {"id": "a", "name": "Middle", "slug": "middle",
+         "evaluations": {"artificial_analysis_intelligence_index": 40},
+         "pricing": {"price_1m_input_tokens": 2.0}},
+        {"id": "b", "name": "No price", "slug": "no-price",
+         "evaluations": {"artificial_analysis_intelligence_index": 30}, "pricing": {}},
+    ]}
+    parsed = aa_models(snapshot)
+    assert len(parsed) == 1 and parsed[0]["price"] == 2.0, parsed
+
     print("selftest ok: %d rows, %d model+channel groups" % (len(rows), len(got)))
     return 0
 
@@ -355,6 +506,14 @@ def main(argv=None):
     parser.add_argument("--month", help="only rows whose date starts with this, e.g. 2026-09")
     parser.add_argument("--fetch-prices", action="store_true",
                         help="fetch list prices from %s for an extra estimate" % MODELS_DEV)
+    parser.add_argument("--aa-key", help="Artificial Analysis API key; only used for the "
+                        "optional first filter, never stored (or set ARTIFICIAL_ANALYSIS_API_KEY)")
+    parser.add_argument("--aa-cache", help="where to keep the local Artificial Analysis "
+                        "snapshot (default: aa-snapshot.json next to the ledger)")
+    parser.add_argument("--aa-refresh", action="store_true",
+                        help="ignore a snapshot younger than 24 hours and fetch again")
+    parser.add_argument("--no-aa", action="store_true",
+                        help="skip the Artificial Analysis filter even if a key is set")
     parser.add_argument("--currency", default="CNY", help="money unit of the ledger (default CNY)")
     parser.add_argument("--selftest", action="store_true", help="run the built-in test and exit")
     args = parser.parse_args(argv)
@@ -396,6 +555,24 @@ def main(argv=None):
     print("== amortized cost (monthly fee spread over this month's qualified runs; "
           "use at month end) ==")
     table(groups, "amortized", "amortized_each", args.currency if plans else None)
+
+    key = None if args.no_aa else aa_key(args)
+    if key:
+        cache = args.aa_cache or os.path.join(os.path.dirname(os.path.abspath(args.ledger)),
+                                              "aa-snapshot.json")
+        try:
+            snapshot, origin = aa_fetch(key, cache, refresh=args.aa_refresh)
+            aa_report(groups, args, (snapshot, "%s (%s)" % (cache, origin)))
+        except urllib.error.HTTPError as exc:
+            print("warning: Artificial Analysis refused the request (%s); skipping the "
+                  "frontier (a free key is rate limited to 1,000 requests a day)" % exc,
+                  file=sys.stderr)
+        except Exception as exc:
+            print("warning: could not read %s (%s); skipping the frontier" % (AA_API, exc),
+                  file=sys.stderr)
+    elif not args.no_aa:
+        print("note: no Artificial Analysis key (--aa-key or ARTIFICIAL_ANALYSIS_API_KEY), so "
+              "the first filter is skipped\n", file=sys.stderr)
 
     if args.fetch_prices:
         prices = fetch_prices()

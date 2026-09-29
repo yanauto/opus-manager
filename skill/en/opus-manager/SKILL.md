@@ -191,7 +191,7 @@ After every run — build, review or fix — append one tab-separated line to `_
 - Plan and gifted runs: cost is `0`. If the tool does not report tokens, write `unknown` — never estimate or pad it.
 - One line per run; do not merge. On a review line, findings is the number that survived verification.
 - Copy channel fees and quotas from `templates/plans.example.json` and put in what the user actually pays.
-- Once a month run `scripts/value-report.py` (method in the repo's `docs/value.md`): marginal cost for day-to-day dispatch (drain the plans and gifted quota first), amortized cost at month end to decide about renewals. Replace the combination with the highest cost per qualified run, and tell the user the conclusion in plain words.
+- Once a month run `scripts/value-report.py` (method in the repo's `docs/value.md`): marginal cost for day-to-day dispatch (drain the plans and gifted quota first), amortized cost at month end to decide about renewals. Replace the combination with the highest cost per qualified run, and tell the user the conclusion in plain words. When the user has an Artificial Analysis key, `--aa-key` adds the cut-line filter first (off by default, and no data is ever committed).
 
 ## Rules
 

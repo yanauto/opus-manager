@@ -20,6 +20,7 @@ The ledger holds only what you measured yourself. These are outside references; 
 - **Pay-per-use prices**: [models.dev](https://github.com/anomalyco/models.dev) (open model database; [api.json](https://models.dev/api.json) carries prices and context length), with the [LiteLLM price list](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json) as a fallback.
 - **Plan usage**: [ccusage](https://github.com/ryoppippi/ccusage) (Claude Code usage) and [CodexBar](https://github.com/steipete/CodexBar) (Codex / Claude limits).
 - **Channel prices and quotas**: each vendor's own pages. Links and check dates live in `skill/<lang>/opus-manager/templates/plans.example.json`.
+- **Performance / price frontier (the cut line)**: [Artificial Analysis](https://artificialanalysis.ai/)'s intelligence × cost frontier, used for one rough filter only; see [First filter](#first-filter-the-cut-line-performance--price-frontier) below.
 
 We looked for an existing project that scores plan value per real ticket (searched for coding plan comparison, subscription price comparison and similar). We found nothing; only a couple of one-off price comparisons that never measure results, rework or success rate. So this part we collect ourselves.
 
@@ -91,6 +92,26 @@ A ticket's real cost needs a few more numbers, so the ranking prints them togeth
 
 What we could not verify says `tbd`; nothing is invented. Prices move: after re-checking, set `checked` to that day and keep the links.
 
+## First filter: the cut line (performance / price frontier)
+
+The line Chinese-language circles call the "cut line" (斩杀线) is the **Pareto line** on [Artificial Analysis](https://artificialanalysis.ai/)'s homepage chart of intelligence against cost per benchmark task: every model on the line is the smartest at its price or the cheapest at its score, and models inside the line are beaten on both axes at once. Their evaluation method is on the [methodology page](https://artificialanalysis.ai/methodology).
+
+**How to use it**: filter first with that line, and only pick models on it or right next to it; then rank those with this ledger by the cost per qualified ticket your own tickets measured. When the two disagree, trust your own numbers — the cut line uses someone else's benchmark set and official list prices, and knows nothing about your ticket mix or your plan discounts.
+
+**Three limits**:
+
+- it prices everything at **official pay-per-use rates**, with no plans, gifted quota or discounts — exactly the gap this ledger fills;
+- the score comes from their own evaluation set, which is not your ticket mix;
+- cost per task also depends on how chatty a model is, so verbose models look worse on that chart than they are.
+
+**Rules for getting the data**: Artificial Analysis has a free API (register for a key, 1,000 requests a day, attribution required, they advise caching and say not to put keys in client-side code). Their [terms of use](https://artificialanalysis.ai/terms-of-use) grant a personal, noncommercial licence only; they forbid scraping the site and forbid building a similar or competing product from their data or republishing it, and any of that needs written consent first. So, in this repository:
+
+- **no Artificial Analysis data is stored here**, and nothing scrapes their pages;
+- the script offers one **optional switch**: `--aa-key` (or the `ARTIFICIAL_ANALYSIS_API_KEY` environment variable). It uses your own key for a single call, keeps a local snapshot (next to the ledger by default, reused for 24 hours), computes the frontier, and marks every model in your ledger as on the frontier / near it / inside it. Without a key it skips that and the rest of the report runs as usual;
+- the self-test **never touches the network**; the frontier logic is tested against built-in fake data.
+
+One caveat about the free API: it gives a price per million tokens and an intelligence score, while the homepage chart's x-axis, cost per task, is that price folded through a fixed token-per-task assumption. The script computes intelligence against the blended price per million tokens — the same idea, a proxy, not the chart's original value.
+
 ## Our numbers
 
 > Aggregated per model only — no ticket names, no project names. From two days of real runs on the author's machine, 2026-09-28 to 09-29. **Small sample: two days is not a month.** Read the direction, not the decimals.
@@ -106,15 +127,28 @@ What we could not verify says `tbd`; nothing is invented. Prices move: after re-
 
 "Finished" is lower than "tickets" because some tickets were still running. **First pass = accepted with no rework round; reworked = at least one fix ticket was dispatched.**
 
-### Review (2 days)
+### Review
 
-| Model (tool) | Channel | Review rounds | Calls | Tokens | Findings claimed (counted in the reports) | Confirmed (recorded in fix reports) |
-|---|---|---|---|---|---|---|
-| GLM 5.3 Flash (`pi`) | GLM Coding Plan | 23 | 391 | 19.5M | 2 | 20 |
-| Gemini 3.1 Pro (`pi`) | Google AI plan (a few rounds ran on the Codex plan) | 22 | 263 | 13.4M | 21 | 9 |
-| Gemini 3.8 Flash (`pi`) | Google AI plan (a few rounds ran on the Codex plan) | 25 | 1,007 | 94.1M | 31 | 18 |
+**Usage (from the usage table, 2026-09-28 to 09-29)**
 
-"Findings claimed" counts only the ones marked with a severity in the report; "confirmed" counts only the fix reports that stated a number. The two columns are counted differently and **both are undercounts**; do not read them as exact.
+| Model (tool) | Channel | Review rounds with detail | Calls | Tokens |
+|---|---|---|---|---|
+| GLM 5.3 Flash (`pi`) | GLM Coding Plan | 23 | 391 | 19.5M |
+| Gemini 3.1 Pro (`pi`) | Google AI plan (a few rounds ran on the Codex plan) | 22 | 263 | 13.4M |
+| Gemini 3.8 Flash (`pi`) | Google AI plan (a few rounds ran on the Codex plan) | 25 | 1,007 | 94.1M |
+
+**Review quality (from the fix-stage verification table, the same batch of rounds, one counting rule)**
+
+| Reviewer (model it ran on) | Rounds with a verification record | Findings claimed | Confirmed | Confirmed rate |
+|---|---|---|---|---|
+| `review` (GLM 5.3 Flash) | 13 | 54 | 43 | 80% |
+| `review-gem8` (Gemini 3.8 Flash) | 12 | 39 | 32 | 82% |
+| `review-gem` (Gemini 3.1 Pro) | 13 | 20 | 16 | 80% |
+| One round standing in (GPT-5.6 Sol) | 1 | 2 | 2 | — |
+| One ticket not split per reviewer | — | 14 | 12 | — |
+| **Total** | **39** | **129** | **105** | **81%** |
+
+These two tables come from two different records: the top one is usage the tools reported, the bottom one is the item-by-item verdicts in the fix reports. Some review reports never marked severity, so counting the findings written in the reports does not line up with the verification table — no number is taken from those reports any more. **Both columns now come from the verification table only**; tickets without an item-by-item verification are not counted, and a round that ran but claimed nothing counts as zero findings but still counts as a round.
 
 ### Two-day totals
 
@@ -122,21 +156,23 @@ What we could not verify says `tbd`; nothing is invented. Prices move: after re-
 - Priced at models.dev pay-per-use rates: about **$274.62 (estimate)**. Cash actually spent: **¥0.51**. The rest sat inside three plan / gifted channels — which is why the number to watch is cost per qualified ticket, not the list price.
 - Within the same batch of work, GPT-5.6 Sol carried about $270 of that list price; DeepSeek V4.1 Flash carried about $3.
 
-### Cost per qualified run (list price, estimate)
+### What one month of quota buys, and the cost per ticket
 
-Using $1 ≈ ¥7.1 and the monthly fees above. **With only two days of sample, read the right column as a break-even line:**
+On a monthly plan the quota is what runs out first, not the money. So read two numbers together: (1) roughly how many qualified tickets one month of quota buys, from what we actually consumed, and (2) amortized cost = monthly fee ÷ that number.
 
-| Combination | List price per qualified run | Break-even (monthly fee ÷ per run) |
-|---|---|---|
-| GLM 5.3 Flash + GLM Coding Plan ($18/month, review only) | ~$0.05 per round | about 400 rounds a month |
-| DeepSeek V4.1 Flash + OpenCode Go ($10/month) | ~$0.42 per ticket | about 24 tickets a month |
-| GPT-5.6 Sol + Codex plan ($20/month assumed) | ~$18.14 per ticket | about 2 tickets a month |
+| Combination | Quota | Qualified tickets per month of quota | Monthly fee | Amortized cost |
+|---|---|---|---|---|
+| DeepSeek V4.1 Flash + OpenCode Go | $60 of usage a month for this model | about 143 ($60 ÷ the measured $0.42 per ticket) | $10/month | about $0.07 each |
+| GPT-5.6 Sol + Codex plan (Plus assumed) | weekly quota. Measured: at this intensity two days took the weekly quota down to 5% left | about 50 (11 qualified tickets in two days → about 11.6 per week of quota → about 50 a month) | **tbd** ($20/month on Plus) | about $0.40 each |
+| GPT-5.6 Sol + Codex plan (Pro assumed) | OpenAI says Pro carries 5x or 20x the Plus limits | 5x ≈ 250; 20x ≈ 1,000 | **tbd** (from $100/month; we could not verify what 5x and 20x cost) | about $0.40 each at 5x; the 20x fee is unverified, and scaling both sides keeps it in the same range |
+| GLM 5.3 Flash + GLM Coding Plan | credits | tbd: turning credits into tickets needs input, cache and output counted separately, and the ledger still holds only a total | $18/month | tbd |
+| Gemini + Google AI plan | no published quota number | tbd | $19.99/month | tbd |
 
-Read it like this: **the Codex plan pays for itself after 2 tickets a month, DeepSeek on OpenCode Go needs 24, and GLM used for review alone needs 400 rounds.** That last number says the plan's value depends on what you point it at: the same plan used for building would break far earlier.
+The Codex row deserves a flag: **we do not know which ChatGPT tier was used**, so the fee says tbd and both assumptions (Plus, Pro) are listed. Either way, the ~50 tickets a month figure is the Plus order of magnitude; a higher tier buys proportionally more.
 
 ### A longer run of runs (from 2026-09-23, 7 days)
 
-The local task status table shows 484 worker runs in 7 days (runs, not tickets): 438 ended normally (91%), 24 errored, 22 were killed on a timeout. Runs by model: DeepSeek Flash 165, GPT-5.6 Sol 94, GLM 5.3 Flash 82, GPT-6 Sol 43, DeepSeek V4.1 Flash 23, Gemini 3.8 Flash 23, Gemini 3.1 Pro 21, GPT-6 Astra 16, MiMo V2.6 Pro 11, GPT-5.6 Luna 6.
+The local task status table shows 484 worker runs in 7 days (runs, not tickets): 438 ended normally (91%), 24 errored, 22 were killed on a timeout. **Models still in use**: DeepSeek V4.1 Flash 188 (165 through the official API, recorded as `deepseek-flash`, plus 23 on OpenCode Go — the same model), GPT-5.6 Sol 94, GLM 5.3 Flash 82, Gemini 3.8 Flash 23, Gemini 3.1 Pro 21, GPT-6 Astra 16. **Retired models account for the remaining 60 runs.**
 
 Those days have no pay-per-use detail (only one tool reported usage), so **tokens and money are only available for the two days above**. For the earlier days we have runs and pass/fail only; treat that as an estimate.
 
@@ -146,13 +182,15 @@ Those days have no pay-per-use detail (only one tool reported usage), so **token
 - **Plan cost is not net**: when several plans run at once, telling which run spent which quota is hard. Right now only list price and the break-even line approximate it.
 - **Caching inflates token counts**: re-reading the same context hits cache at roughly 1/50 of the input price, so "many tokens" does not mean "expensive". The script prices input, cache and output separately; do not read the total alone.
 - **Models do not land the same quality**: DeepSeek is cheap but sloppy at the finish; GPT-5.6 Sol is expensive but gets more right the first time. The ledger counts money and rework, not "can it do this job at all".
-- **Two `tbd`s**: OpenAI does not record which ChatGPT tier was used, and Google AI does not record which tier or whether the models run inside the plan or through an API key. Fill those in once you check them.
+- **The `tbd`s**: OpenAI does not record which ChatGPT tier was used; Google AI does not record which tier or whether the models run inside the plan or through an API key; GLM's credits cannot be turned into a ticket count yet. Fill those in once you check them.
 
 ## How to run it
 
 ```bash
-python3 scripts/value-report.py --selftest                                # self-test, needs no data
+python3 scripts/value-report.py --selftest                                # self-test, offline
 python3 scripts/value-report.py _receipts/ledger.tsv --plans plans.json   # the two rankings
+python3 scripts/value-report.py _receipts/ledger.tsv --plans plans.json \
+    --aa-key "$ARTIFICIAL_ANALYSIS_API_KEY"                                # optional: the first filter
 ```
 
-Standard library only; nothing to install.
+Standard library only; nothing to install. The Artificial Analysis switch is off by default, skips silently without a key, and never runs in the self-test.
