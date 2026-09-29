@@ -44,6 +44,8 @@ Each row is one day of real use. Small sample; your numbers will differ.
 
 Worker models are billed per use, so they are not free. The saving is that Claude's quota stops going to implementation.
 
+Per-model notes on what to use each model for and what to watch out for: [Model field notes](docs/models.md).
+
 ## How it works
 
 ![How it works](docs/architecture-en.png)
