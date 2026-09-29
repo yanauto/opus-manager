@@ -8,9 +8,7 @@ A Claude Code skill that makes Claude the manager of your project instead of its
 
 ![A real run of opus-manager, sped up](docs/demo.gif)
 
-*A real run, sped up about 20×: Claude writes the ticket, DeepSeek builds it, Claude reruns the checks and commits, GLM reviews, Claude verifies each finding. About 4 minutes end to end.*
-
-![How it works](docs/architecture-en.png)
+*A real run. It took about 4 minutes; the GIF plays most of it at 20× speed. Claude writes the ticket, DeepSeek builds it, Claude reruns the checks and commits, GLM reviews, Claude checks each finding.*
 
 ## Why
 
@@ -18,15 +16,15 @@ Claude (Opus in particular) is strongest at judgment: breaking work down, decidi
 
 With this skill, Claude's quota is spent on planning, acceptance and verification. The implementation runs on pay-per-use models. In the author's words: **a $20 Claude Pro plan starts to feel like the $200 Max plan.**
 
-## Why the manager never writes the code
+### Why the manager never writes code
 
-The point is not only saving quota. It is keeping Claude's context clean.
+Saving quota is only part of it. The bigger point is keeping Claude's context clean.
 
-When Claude writes the code itself, its context fills up with code: files it opened, diffs, test logs, failed attempts. The plan, what "done" means, and why earlier calls were made get pushed aside or compacted away.
+When Claude writes code itself, its context fills up with code: files it opened, diffs, test logs, failed attempts. The plan, what "done" means, and why earlier decisions were made get pushed aside or compacted away.
 
-Here Claude only sees tickets, receipts, the diff of each ticket and review findings. The implementation happens in another tool's session. So Claude stays on the project as a whole and keeps making decisions: what comes next, whether a result is really done, which review finding is real.
+Here Claude only sees tickets, receipts, the diff of each ticket and review findings. The implementation happens in a separate CLI tool's session. So Claude keeps its view of the whole project and keeps making decisions: what comes next, whether a result is really done, which review findings are real bugs and which are false alarms.
 
-Two things follow from that:
+What that gets you:
 
 - **The project keeps moving.** A friend's project had been stuck for about two months on DeepSeek and GLM, then on GPT. With Claude managing and DeepSeek building, most of it moved forward in two days. One project, one data point.
 - **You can step away.** Claude plans, dispatches, verifies and sends fixes back on its own. The author and a colleague have each handed full working days to it. You come back to the decisions that are actually yours.
@@ -47,6 +45,8 @@ Each row is one day of real use. Small sample; your numbers will differ.
 Worker models are billed per use, so they are not free. The saving is that Claude's quota stops going to implementation.
 
 ## How it works
+
+![How it works](docs/architecture-en.png)
 
 1. **Ticket.** Claude writes a ticket in `_tickets/open/`: the goal, the files that may change, acceptance commands, and why those commands matter.
 2. **Dispatch.** A dispatch script that Claude writes on first run moves the ticket to `_tickets/doing/` (the move is the lock), signs it with the real worker and model, and starts the worker headless. The worker runs detached from Claude's session, so a session restart does not stop it.
