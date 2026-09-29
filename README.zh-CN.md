@@ -2,7 +2,7 @@
 
 [English](README.md) · 中文
 
-> 国内下载更快：[yan-auto.me/downloads/opus-manager](https://yan-auto.me/downloads/opus-manager/)
+> 国内下载更快：[yan-auto.me/zh/downloads/opus-manager](https://yan-auto.me/zh/downloads/opus-manager/)
 
 一个 Claude Code skill，让 Claude 当项目经理，不当码农。Claude 把需求拆成工单，派给你电脑上更便宜的编程 Agent 去实现，自己验收结果，再交给另一家厂商的模型做异族 Code Review。
 
