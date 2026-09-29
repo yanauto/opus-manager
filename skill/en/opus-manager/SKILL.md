@@ -1,6 +1,6 @@
 ---
 name: opus-manager
-description: Managed mode: you act as the manager and do not write the code yourself. Turn work into tickets, hand them to other AI command-line tools on the user's machine (cheaper models), then accept the result, get a second vendor to review it, and verify every finding. Use when the user says "use tickets", "manage this", "hand it off", or asks other models to do the work. On first use, find out which workers this machine has and settle the setup with the user.
+description: Managed mode: you act as the manager and do not write the code yourself. Turn work into tickets, hand them to other AI command-line tools on the user's machine (cheaper models), then accept the result, get a second vendor to review it, and verify every finding. Can run unattended while the user is away. Use when the user says "use tickets", "manage this", "hand it off", "run it while I'm away", or asks other models to do the work. On first use, find out which workers this machine has and settle the setup with the user.
 ---
 
 # Ticket management
@@ -91,9 +91,10 @@ _tickets/
   blocked/   waiting on something outside; say what in the header
   dropped/   abandoned; say why
   workers.md worker setup (from step 0)
+  queue.md, handoff.md, decisions.md   unattended mode only (section 9)
   dispatch.* dispatch script (from step 0)
   review.*   review script (from step 0)
-_receipts/   receipts, review reports, run logs, status files
+_receipts/   receipts, review reports, run logs, status files; progress.md and report-<date>.md in unattended mode
 ```
 
 Ticket and receipt templates are in this skill's `templates/` folder.
@@ -116,7 +117,7 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 
    > You are the worker for one ticket. You run headless: nobody can answer questions. Ticket: <absolute ticket path> (already claimed for you; it stays in _tickets/doing/). Workdir: <absolute workdir path>; run every command there, cd into it first. Read the whole ticket, then every file it lists. Do exactly what it asks, nothing outside its scope. Irreversible actions (deleting data or directories, force-push, sending messages) only if the ticket says so; otherwise list them under open questions. If something is unclear, list it; do not guess. Do not write scripts that walk directories and rewrite file contents; name each file you change. Do not open non-text files such as databases, images or archives unless the ticket names them. Stop any background process you started before you finish. Do not move the ticket. Do not commit unless the ticket says so. Never merge any other branch or PR. When done, write the receipt to <absolute receipt path> following <absolute receipt template path>, in the ticket's language. Engine line: <tool / model>. For every acceptance check, paste the exact command and its unedited output. Never invent output.
 
-3. **Wait for it to finish.** A ticket often takes minutes to tens of minutes. Check `_receipts/<ticket>.status` to see whether it has ended, then read the receipt. Do not report or guess the result before you have read the receipt.
+3. **Get woken when it finishes.** A ticket often takes minutes to tens of minutes. Right after dispatching, start a wait command as a background task of your own tool (in Claude Code, a background Bash command), for example `until grep -q '^exit=' _receipts/<ticket>.status; do sleep 30; done`. It ends when the worker ends, and its completion notice wakes you, so you do not need to sit and poll; one wait per running worker. The worker itself stays detached, so a session restart does not stop it. When woken, read the receipt. Do not report or guess the result before you have read the receipt.
 
 ## 4. Rules for parallel dispatch
 
@@ -142,7 +143,7 @@ Pass: if the project uses git, make one commit that names the ticket.
 
 ## 6. Review with a different vendor
 
-A worker never reviews its own code. Run the review script `_tickets/review.<sh/ps1> <ticket>`. It uses the read-only review command from `workers.md` with the prompt below and saves the reviewer's final answer as `_receipts/<ticket>.review.md` (second round `.review-2.md`; never overwrite):
+A worker never reviews its own code. Run the review script `_tickets/review.<sh/ps1> <ticket>`. It uses the read-only review command from `workers.md` with the prompt below and saves the reviewer's final answer as `_receipts/<ticket>.review.md` (second round `.review-2.md`; never overwrite). Start a background wait on its status file, as in section 3, step 3, so its end wakes you. The review prompt:
 
 > You are the code reviewer for one ticket. You run headless: nobody can answer questions. Another model wrote this code; you check it. Ticket: <path>. Receipt: <path>. <Scope: a committed range, or the files listed in the receipt.> Look for real problems only: wrong logic and edge cases, damage to existing data, security holes (secrets, exposed endpoints, skipped approvals), stability (concurrency, timeouts, leaked resources), and tests that do not test what the receipt claims. No style nitpicks. Do not edit any file; you may run read-only commands and the ticket's acceptance commands. Your final answer IS the report: first line "Reviewer: <tool / model> @ <time>"; one-sentence verdict; then per finding: severity (high/medium/low) | file:line | problem | code evidence | fix. Mark anything uncertain as UNSURE. If you found nothing, say so; do not pad.
 
@@ -158,6 +159,26 @@ Append your verdicts to the end of the review report.
 ## 8. Close
 
 Move the ticket from `doing/` to `done/`. Tell the user in plain words: what works now, what they may notice, what risk remains.
+
+## 9. Unattended mode
+
+Use this when the user hands over a stretch of work and leaves: "I'm off for the day", "run it overnight", "hand it off".
+
+**Before they leave.** Everything you would otherwise interrupt them for, ask now, one question at a time.
+1. Agree the goal. Split it into tickets and write the order into `_tickets/queue.md`. Only tickets that can run now go into `open/`.
+2. Write `_tickets/handoff.md`: the goal; the queue; what you may do without asking (e.g. merge after review, deploy to staging, a worker budget); what you must never do alone (e.g. deleting data, messages to anyone outside, spending past the budget, production releases if they have not said yes); when to stop.
+3. Tell them what can stop the run, and let them fix it before leaving: the computer must not sleep; tool permissions must not wait for clicks; and their Claude plan has usage limits. A Pro plan's 5-hour window can be mostly used in one busy morning; when it runs out you stop until it resets, while workers already started keep running.
+
+**While they are away.**
+- Work down the queue without waiting to be told to continue: dispatch, accept, review, verify findings, close, next.
+- Every running worker must have its background wait (section 3, step 3). That completion notice is what wakes you; with nobody at the keyboard, a worker without one leaves the run stuck.
+- A decision that is not covered in `handoff.md`, or a task the handoff forbids you to do alone: do not guess, and do not stop everything. Add it to `_tickets/decisions.md` (question, options, your recommendation, what is waiting on it), move that ticket to `blocked/`, and carry on with the others.
+- After every closed ticket, add one line to `_receipts/progress.md`: time, ticket, result, worker cost. The user can read this instead of asking how it is going.
+- Your session can end at any time (usage limit, restart). Keep `queue.md` and `progress.md` current after every ticket so a new session can pick up from them. When a session starts and `handoff.md` shows unfinished work, read these two files first and continue.
+- Do not widen the scope. New ideas go into `queue.md` as proposals; do not start them.
+- Stop when the queue is empty, only blocked tickets are left, the budget or stop time is reached, or the same ticket has failed twice (move it to `blocked/` with the reason).
+
+**When they are back, or when you stop,** write `_receipts/report-<date>.md` and tell them in plain words: what works now; what is not done; what is waiting for their decision (one line each, with your recommendation); what went wrong; worker costs. You cannot see your own Claude usage; say so rather than guess.
 
 ## Rules
 
