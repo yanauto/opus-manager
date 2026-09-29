@@ -24,8 +24,8 @@ Here Claude only sees tickets, receipts, the diff of each ticket and review find
 
 Two things follow from that:
 
-- **The project keeps moving.** A colleague's project had been stuck for about two months on DeepSeek and GLM, then on GPT. With Claude managing and DeepSeek building, most of it moved forward in two days. One project, one data point.
-- **You can step away.** Claude plans, dispatches, verifies and sends fixes back on its own. The author and that colleague have each handed full working days to it. You come back to the decisions that are actually yours.
+- **The project keeps moving.** A friend's project had been stuck for about two months on DeepSeek and GLM, then on GPT. With Claude managing and DeepSeek building, most of it moved forward in two days. One project, one data point.
+- **You can step away.** Claude plans, dispatches, verifies and sends fixes back on its own. The author and a colleague have each handed full working days to it. You come back to the decisions that are actually yours.
 
 ## Field numbers
 
