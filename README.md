@@ -20,10 +20,10 @@ Tell Claude what you want done and leave. It asks the questions it would otherwi
 
 Two real runs:
 
-- **A colleague's release day (a recruiting SaaS).** He left at 17:30. It kept going on its own until 22:28: 9 tickets through build → review by a second vendor → fix → release → live check, including 2 reviews it noticed it had skipped and ran. He checked in once. A report was waiting at 08:30 the next morning.
-- **The author's work project, overnight.** 7.4 hours with no messages from him: Claude claimed 9 tickets and collected 10 receipts.
+- **A colleague's release day (a recruiting SaaS).** He left at 17:30. It kept going on its own until 22:28: 9 tickets through build → review by a second vendor → fix → release → live check, including 2 skipped reviews it caught and ran itself. He checked in once. A morning report came out at 08:30 the next day.
+- **The author's work project, overnight.** 00:23 to 07:45, 7.4 hours with no messages from him: Claude claimed 9 tickets and got 10 receipts back from workers.
 
-What can stop it: the computer going to sleep, a permission prompt nobody answers, and Claude's own usage limits. On a Pro plan one busy morning can use most of a 5-hour window; when it runs out Claude pauses until the reset, while workers already started keep running.
+What can stop it: the computer going to sleep, a permission prompt nobody answers, and Claude's own usage limits. On a Pro plan, one busy morning used about 83% of a 5-hour window. When the limit is hit Claude stops; workers already started finish, and after the reset you tell it to continue.
 
 ### Your Claude quota goes to judgment
 
@@ -42,7 +42,7 @@ Here Claude only sees tickets, receipts, the diff of each ticket and review find
 What that gets you:
 
 - **The project keeps moving.** A friend's project had been stuck for about two months on DeepSeek and GLM, then on GPT. With Claude managing and DeepSeek building, most of it moved forward in two days. One project, one data point.
-- **You can step away.** Claude plans, dispatches, verifies and sends fixes back on its own, as in the two runs above. You come back to the decisions that are actually yours.
+- **You can step away.** Claude plans, dispatches, verifies and sends fixes back on its own, as in the colleague's run above. You come back to the decisions that are actually yours.
 
 ## Field numbers
 
@@ -130,7 +130,7 @@ To leave it running, say so:
 
 > I'm off for the evening. Run this unattended: fix the checkout bug, then add CSV export.
 
-Claude settles what it may do without you, writes the queue to `_tickets/queue.md`, and keeps a one-line-per-ticket log in `_receipts/progress.md` that you can read instead of asking how it is going.
+Claude agrees with you on what it may do without asking, writes the queue to `_tickets/queue.md`, and keeps a one-line-per-ticket log in `_receipts/progress.md` that you can read instead of asking how it is going.
 
 ## Tip
 
