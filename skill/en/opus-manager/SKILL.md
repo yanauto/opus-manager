@@ -121,6 +121,19 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 
 ## 4. Rules for parallel dispatch
 
+**Manager attention budget.** A strong model's attention and context are limited. Budget concurrency across projects by simultaneous manager decisions, not worker count. Workers have independent contexts and can run in parallel; notifications, logs and pending decisions consume manager bandwidth. Keep roughly five judgments or acceptance checks active at once (adjust for the model and project); finish those before taking on new decisions.
+
+- Keep queues, status tables, handoffs and per-ticket logs in files; read them as needed rather than carrying state in the manager's memory (see section 9).
+- Start workers independently of the manager session as in section 0 (e.g. `nohup`); keep only the lightweight waits from section 3 in the manager session, so restarting it does not stop workers.
+- Where supported, use higher reasoning for acceptance and decisions to verify one step further, not for routine relaying. Higher reasoning is slower and more expensive; reserve it for judgment.
+
+**Theoretical background (analogies, not proof of an AI concurrency limit).**
+- [Vaswani et al., 2017, *Attention Is All You Need*](https://arxiv.org/abs/1706.03762): introduced the attention-based Transformer; this is not management theory.
+- [Little, 1961, Little's Law](https://doi.org/10.1287/opre.9.3.383): in a stable system, `L = λW` (average work in progress = throughput × average time in the system); at unchanged throughput, more work in progress means longer time in the system.
+- [Goldratt and Cox, 1984, *The Goal*](https://books.google.com/books?vid=ISBN0884270610): the theory of constraints emphasizes system bottlenecks; treating manager judgment as a potential bottleneck is our practical application.
+- [Graicunas, 1933, *Relationship in Organization* (reprinted in 1937)](https://archive.org/details/papersonscienceo00guli): span of control concerns relationship load growing with subordinate count; “4–8 people” is only a common rule-of-thumb range, not a research conclusion or a direct conversion to AI ticket counts.
+Manager attention is a narrow bridge: more cars do not mean faster crossings.
+
 - Run tickets in parallel only when their changes do not overlap. Give each ticket its own branch and work directory (in a git project, `git worktree`). Only you merge, one ticket at a time, after acceptance; even a worker allowed to commit commits only to its own branch and never merges another branch: that ticket may not have been fixed after review yet.
 - The next two apply only when the user lets workers open PRs or release:
   - Put `Ticket: T<N>` in every PR description. Before merging, verify that it matches the current ticket; reject the merge if it does not. If workers may merge, put a command wrapper in front of their merge tool to enforce the same check.
