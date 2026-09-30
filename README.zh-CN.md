@@ -50,6 +50,8 @@ Claude 自己写代码时，上下文会被代码塞满：打开的文件、改�
 
 每一行都是真实使用的一天。样本很少，你的数字会不一样。
 
+想知道哪种模型加哪种渠道做出一张合格工单最便宜——包月、赠送和按量要分开算——见[性价比账本](docs/value.zh-CN.md)：账本格式、每月排行的方法，以及我们第一份实测数。自己出排行：`python3 scripts/value-report.py --selftest`，再 `python3 scripts/value-report.py _receipts/ledger.tsv --plans plans.json`。
+
 | 场景 | 结果 |
 |---|---|
 | 一位同事（匿名）把一整个工作日交给它托管 | 用掉 Claude Pro 周额度的 20%；工人模型花费约 5–6 美元 |

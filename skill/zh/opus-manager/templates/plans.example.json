@@ -1,0 +1,99 @@
+{
+  "_readme": [
+    "渠道表，配合价值账本用。复制到你的账本旁边，定期更新。",
+    "这里的 channel 值就是 _receipts/ledger.tsv 里渠道那一列写的内容。",
+    "monthly_fee 是你每月实实在在掏的钱；赠送渠道写 0。",
+    "按量渠道用 metered，白拿的额度用 gifted。",
+    "价格和额度会变：照着来源链接重新核对，再把 checked 往后推。",
+    "checked = 最后一次上官方页面核对的日期。",
+    "tbd 表示没能在官方页面核实，自己去核。"
+  ],
+  "checked": "2026-09-29",
+  "currency": "CNY",
+  "fx": {
+    "USD": 7.1,
+    "_note": "把别的币种折成账本本币的汇率；核对价格时顺手更新"
+  },
+  "plans": [
+    {
+      "channel": "opencode-go",
+      "name": "OpenCode Go",
+      "monthly_fee": 10,
+      "currency": "USD",
+      "billing_cycle": "按月，随时可取消",
+      "quota": "按模型给额度：DeepSeek V4.1 Flash 每月 60 美元用量；Go Plus 每月 40 美元，同一模型给到 120 美元",
+      "rate_limits": "按模型：5 小时 = 月额度的 20%、每周 = 50%、每月 = 100%。DeepSeek V4.1 Flash 即每 5 小时 12 美元、每周 30 美元。约每 5 小时 2.6 万次请求",
+      "reset": "滚动；5 小时窗口和每周窗口跟着用量走",
+      "sources": ["https://opencode.ai/go", "https://opencode.ai/docs/go/"],
+      "checked": "2026-09-29",
+      "note": "一份订阅覆盖几个模型厂商，手里没有别的工人 CLI 时好用"
+    },
+    {
+      "channel": "deepseek-api",
+      "name": "DeepSeek 官方按量",
+      "monthly_fee": 0,
+      "currency": "USD",
+      "billing_cycle": "按量计费，充值余额扣费；同时有赠送余额时先用赠送",
+      "quota": "没有额度，按 token 付",
+      "rate_limits": "deepseek-flash 并发上限 2,500",
+      "reset": "无",
+      "peak_hours": "UTC 周一至周五 01:00-04:00 与 06:00-10:00（中国法定节假日全天算低谷）；低谷价是峰价的一半",
+      "prices_per_1m_tokens": {
+        "deepseek-flash": {
+          "input_cache_hit": {"peak": 0.006, "off_peak": 0.003},
+          "input_cache_miss": {"peak": 0.3, "off_peak": 0.15},
+          "output": {"peak": 1.2, "off_peak": 0.6}
+        },
+        "deepseek-v4-pro": {
+          "input_cache_hit": {"peak": 0.044, "off_peak": 0.022},
+          "input_cache_miss": {"peak": 1.32, "off_peak": 0.66},
+          "output": {"peak": 3.96, "off_peak": 1.98}
+        }
+      },
+      "sources": ["https://api-docs.deepseek.com/quick_start/pricing"],
+      "checked": "2026-09-29",
+      "note": "长任务尽量放低谷跑：同样的 token 只花一半"
+    },
+    {
+      "channel": "codex-plus",
+      "name": "ChatGPT 订阅里的 Codex",
+      "monthly_fee": 20,
+      "currency": "USD",
+      "billing_cycle": "按月",
+      "quota": "Codex 和 ChatGPT Work 共用；本地消息和云端会话吃同一份额度，另外可能还有每周上限",
+      "rate_limits": "各模型每 5 小时的条数估算不一样；到上限后可买额外额度，或用 API key 按 API 价跑",
+      "reset": "5 小时滚动窗口；具体重置时间看用量面板",
+      "tiers": "Free $0、Go $8、Plus $20、Pro 从 $100 起（额度是 Plus 的 5 倍或 20 倍）、Business 按月付每人每月 $25",
+      "sources": ["https://developers.openai.com/codex/pricing"],
+      "checked": "2026-09-29",
+      "note": "待核：我们的账本没记过用的是哪一档；把你实际付的那一档填进 monthly_fee"
+    },
+    {
+      "channel": "glm-coding-plan",
+      "name": "智谱 GLM Coding Plan",
+      "monthly_fee": 18,
+      "currency": "USD",
+      "billing_cycle": "按月；Lite 从 18 美元起，Pro 和 Max 更贵（各档价格待核，续费前先核）",
+      "quota": "5 小时额度 + 每周额度（credit）：Lite 2,000 / 10,000，Pro 12,000 / 60,000，Max 28,000 / 140,000；credit 只算 GLM-5.3 和 GLM-5.3-Flash",
+      "rate_limits": "并发按档位，Max > Pro > Lite；官方建议同时开发的项目数：Lite 1 个、Pro 1-2 个、Max 2 个以上；低谷时段并发放宽",
+      "reset": "5 小时额度用掉后 5 小时刷新；每周额度从下单起每 7 天重置",
+      "peak_hours": "周一至周五 14:00-18:00（UTC+8）；低谷按 credit 价的 50% 计",
+      "sources": ["https://docs.z.ai/devpack/overview", "https://docs.z.ai/devpack/faq"],
+      "checked": "2026-09-29",
+      "note": "只能用在官方支持的工具里；共享账号或在非支持工具里用会被限制额度"
+    },
+    {
+      "channel": "google-ai-pro",
+      "name": "Google AI 会员里的 Gemini",
+      "monthly_fee": 19.99,
+      "currency": "USD",
+      "billing_cycle": "月付 19.99 美元，年付 199.99；Google AI Ultra 是每月 99.99 美元",
+      "quota": "比免费档更高的 Gemini 访问量；官方没给 token 数",
+      "rate_limits": "按档位，官方没给具体数字；Gemini 应用和你在用的接口共用这份额度",
+      "reset": "滚动，按档位",
+      "sources": ["https://one.google.com/about/google-ai-plans/"],
+      "checked": "2026-09-29",
+      "note": "待核：付的是哪一档 Google AI，以及模型是走会员额度还是走 API key"
+    }
+  ]
+}

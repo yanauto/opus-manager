@@ -1,0 +1,99 @@
+{
+  "_readme": [
+    "Channel table for the value ledger. Copy next to your ledger file and keep it current.",
+    "The 'channel' value here is what goes in the channel column of _receipts/ledger.tsv.",
+    "monthly_fee is what you actually pay per month; a gifted channel has 0.",
+    "Use 'metered' for pay-per-use and 'gifted' for free quota.",
+    "Prices and limits change: re-check the source links and move 'checked' forward.",
+    "checked = the date someone last read the official page.",
+    "'tbd' means we could not verify it on an official page - check it yourself."
+  ],
+  "checked": "2026-09-29",
+  "currency": "CNY",
+  "fx": {
+    "USD": 7.1,
+    "_note": "rates used to convert other currencies into the ledger's unit; update when you re-check"
+  },
+  "plans": [
+    {
+      "channel": "opencode-go",
+      "name": "OpenCode Go",
+      "monthly_fee": 10,
+      "currency": "USD",
+      "billing_cycle": "monthly, cancel any time",
+      "quota": "per model: DeepSeek V4.1 Flash $60 of usage a month; Go Plus is $40/month with $120 for the same model",
+      "rate_limits": "per model: 5 hours = 20% of the monthly limit, weekly = 50%, monthly = 100%. For DeepSeek V4.1 Flash that is $12 per 5 hours and $30 per week. Roughly 26,000 requests per 5 hours.",
+      "reset": "rolling; the 5-hour and weekly windows move with use",
+      "sources": ["https://opencode.ai/go", "https://opencode.ai/docs/go/"],
+      "checked": "2026-09-29",
+      "note": "one subscription covers several vendors, useful when you have no other worker CLI"
+    },
+    {
+      "channel": "deepseek-api",
+      "name": "DeepSeek official API (pay per use)",
+      "monthly_fee": 0,
+      "currency": "USD",
+      "billing_cycle": "pay per use, prepaid balance; granted balance is spent first",
+      "quota": "none, pay per token",
+      "rate_limits": "concurrency 2,500 for deepseek-flash",
+      "reset": "n/a",
+      "peak_hours": "01:00-04:00 and 06:00-10:00 UTC, Monday to Friday (Chinese public holidays are off-peak); off-peak is half price",
+      "prices_per_1m_tokens": {
+        "deepseek-flash": {
+          "input_cache_hit": {"peak": 0.006, "off_peak": 0.003},
+          "input_cache_miss": {"peak": 0.3, "off_peak": 0.15},
+          "output": {"peak": 1.2, "off_peak": 0.6}
+        },
+        "deepseek-v4-pro": {
+          "input_cache_hit": {"peak": 0.044, "off_peak": 0.022},
+          "input_cache_miss": {"peak": 1.32, "off_peak": 0.66},
+          "output": {"peak": 3.96, "off_peak": 1.98}
+        }
+      },
+      "sources": ["https://api-docs.deepseek.com/quick_start/pricing"],
+      "checked": "2026-09-29",
+      "note": "run long jobs off-peak when you can: the same tokens cost half"
+    },
+    {
+      "channel": "codex-plus",
+      "name": "ChatGPT subscription with Codex",
+      "monthly_fee": 20,
+      "currency": "USD",
+      "billing_cycle": "monthly",
+      "quota": "shared by Codex and ChatGPT Work; local messages and cloud chats draw on the same allowance, and weekly limits may also apply",
+      "rate_limits": "message estimates per 5-hour window differ per model; Extra credits can be bought after the limit, or run with an API key at API rates",
+      "reset": "rolling 5-hour window; check the usage dashboard for the current reset time",
+      "tiers": "Free $0, Go $8, Plus $20, Pro from $100 (5x or 20x Plus limits), Business $25 per user per month billed monthly",
+      "sources": ["https://developers.openai.com/codex/pricing"],
+      "checked": "2026-09-29",
+      "note": "tbd in our ledger: which tier a run used - write the tier you actually pay for in monthly_fee"
+    },
+    {
+      "channel": "glm-coding-plan",
+      "name": "Zhipu GLM Coding Plan",
+      "monthly_fee": 18,
+      "currency": "USD",
+      "billing_cycle": "monthly; Lite from $18, Pro and Max are higher (tier fee tbd, verify before you renew)",
+      "quota": "credits per 5 hours and per week: Lite 2,000 / 10,000, Pro 12,000 / 60,000, Max 28,000 / 140,000; credits for GLM-5.3 and GLM-5.3-Flash only",
+      "rate_limits": "concurrency per tier, Max > Pro > Lite; recommended number of parallel projects: Lite 1, Pro 1-2, Max 2+; higher during off-peak",
+      "reset": "5-hour credits refresh 5 hours after they are used; weekly credits reset every 7 days from the subscription date",
+      "peak_hours": "Monday to Friday 14:00-18:00 UTC+8; off-peak bills at 50% of the credit rate",
+      "sources": ["https://docs.z.ai/devpack/overview", "https://docs.z.ai/devpack/faq"],
+      "checked": "2026-09-29",
+      "note": "only for the supported tools; account sharing or using it in unsupported tools can get the plan restricted"
+    },
+    {
+      "channel": "google-ai-pro",
+      "name": "Google AI plan with Gemini",
+      "monthly_fee": 19.99,
+      "currency": "USD",
+      "billing_cycle": "monthly $19.99, annual $199.99; Google AI Ultra is $99.99 a month",
+      "quota": "higher access to Gemini models than the free tier; no published token number",
+      "rate_limits": "tier-based, no published numbers; usage is shared across Gemini apps and the API surface you use",
+      "reset": "rolling, tier based",
+      "sources": ["https://one.google.com/about/google-ai-plans/"],
+      "checked": "2026-09-29",
+      "note": "tbd: which Google AI tier you pay for, and whether your models run inside the plan or through an API key"
+    }
+  ]
+}

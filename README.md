@@ -48,6 +48,8 @@ What that gets you:
 
 Each row is one day of real use. Small sample; your numbers will differ.
 
+To see which model on which channel is cheapest per accepted ticket — plans, gifted quota and pay-per-use counted differently — see the [value ledger](docs/value.md): the ledger format, the monthly ranking routine, and our first real numbers. Run the ranking yourself: `python3 scripts/value-report.py --selftest`, then `python3 scripts/value-report.py _receipts/ledger.tsv --plans plans.json`.
+
 | Setup | Result |
 |---|---|
 | A colleague (anonymous) hands a full working day to the skill | 20% of the weekly Claude Pro quota; about $5–6 on worker models |
