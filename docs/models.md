@@ -41,6 +41,24 @@ The same piece of code reviewed concurrently by three vendors: both Geminis foun
 
 Prewrite “if X happens, do Y” within authorized boundaries, split large tickets, and check for overengineering in review—unnecessary abstractions, configuration or fallback logic. This is our small, single-project observation, not a controlled same-task comparison.
 
+## Ratings (from 夯到拉)
+
+This is a Chinese-internet meme: it comes from the overseas Tier List format and spread on Douyin and similar platforms from 2024-11. We borrow it to grade models, seven tiers from high to low:
+
+**夯爆了 (S+) > 夯 (S) > 顶级 (A) > 人上人 (B) > NPC (C) > 拉 (D) > 拉完了 (F)**
+
+夯爆了 and 拉 are the two tiers we added to the meme's original five. The tone is a joke; the facts behind each tier are governed by the field notes above, and cover a single project, a small sample, on 09-30 only.
+
+| Model | Used for | Tier | One-line reason |
+|---|---|---|---|
+| GLM 5.3 Flash | Review | 夯爆了 (S+) | On a change the author's own tests all passed, it caught that an internal read-only API still returned residence data for hidden resumes; nearly every finding held up and none were padding |
+| DeepSeek V4.1 Flash | Main builder | 夯 (S) | Half an hour to an hour and a half per ticket, keeps going, cleanly finishes other models' half-done takeovers, low cost; minus: optimistic self-check (it passed its own 3/3 tests on one ticket, then cross-vendor review raised 14 findings) |
+| MiMo V2.6 Pro | Review | 顶级 (A) | 20 findings across 3 tickets, 19 valid; on a subscription channel, so it is absent when the quota runs out |
+| GPT-5.6 Sol | Investigation, high-risk checks | 人上人 (B) | Quick, does not stop early, the medium tier is enough; picks too few samples to validate itself |
+| GPT-6.1 Sol | Build | NPC (C) | Investigates most thoroughly and does not sugarcoat, but stopped to wait for the manager 6 times in one day, spent about 5 hours on one large ticket, and tends to make simple features complex |
+| Gemini | Review | 拉完了 (F) | Two reviews, 0 findings |
+| Kimi K3 | Build | Not rated | Subscription unavailable that day |
+
 ## Cross-model lessons
 
 - **Use Gemini as a bonus reviewer, never as a required one.** Use GLM for the main review, and have GPT-6 Astra re-check important large changes; when several tickets need review at once, give Gemini to the most important one only.
