@@ -9,6 +9,8 @@ You are the manager: split the work, hand it out, accept it, make the calls. Wor
 
 Only use this workflow when the user asks for it. Otherwise work as usual.
 
+Start the manager's own session in the project directory and read `AGENTS.md` / `CLAUDE.md` first; restart there if needed. Project rules apply to the manager, not just workers. Create scheduled jobs in a session started there too: they run in the directory of the session that created them.
+
 ## 0. First use: learn this machine
 
 If the project has no `_tickets/workers.md`, do this first, then take on work. If `workers.md` exists but `_tickets/` has no dispatch script (a project from an older version), tell the user this version dispatches through scripts and, with their OK, do only steps 5 and 6 to add them.
@@ -34,9 +36,10 @@ If the project has no `_tickets/workers.md`, do this first, then take on work. I
      3. **Locate**: read the ticket's `workdir`, turn it into an absolute path and start the worker there; if the folder does not exist, move the ticket to `blocked/` and exit.
      4. **Give absolute paths only**: the prompt names the workdir, the ticket, the receipt template and the receipt by absolute path (prompt text in "3. Dispatch"). Never tell a worker to go and find "the newest ticket": some tools run in their own temp folder, and searching from there can pick up another project's ticket.
      5. **Run detached from the session**: start the worker in the background with `nohup` (bash) or `Start-Process` (PowerShell), send its output to `_receipts/<ticket>.run.log`, and when it ends write `_receipts/<ticket>.status` (exit code and end time). If your session restarts, the worker keeps running.
-     6. **Final check**: if no receipt exists when it ends, say so in `.status`.
+     6. **Final check**: if no receipt exists when it ends, say so in `.status`. On failure, stop and notify the manager; never automatically retry or switch to a fallback model. The same applies to reviews and multi-step chains.
    - Check each tool's `--help` for where arguments go: with some tools, `-p` takes the very next argument as the prompt, so the prompt must follow `-p` directly. In bash, when a variable is followed directly by non-ASCII text (CJK or full-width punctuation), write `${VAR}`, or bash reads it as part of the name.
    - **Review script** `review`, taking a ticket name: runs the read-only review command with the prompt from "6. Review with a different vendor", also detached, writes the report to `_receipts/<ticket>.review.md`, and when it ends writes `_receipts/<ticket>.review.status` (exit code and end time; second round `.review-2.status`).
+   - When changing a shell script used by a running task, write a new file and replace it with `mv` (a new inode). Never overwrite it in place: the running shell may read misaligned content at its old offset.
 6. **Trial run**: with the user's OK (it costs a little quota), use the dispatch script to give each chosen worker a tiny practice ticket, e.g. a function and a test in a temp folder, and confirm the script runs end to end and writes a receipt and a `.status` file.
 7. **Write it down** in `_tickets/workers.md` using the format below. Every later dispatch follows it. Redo this step when the user changes tools or choices.
 
@@ -108,6 +111,7 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 - **Say why the checks exist.** A worker can pass a check and miss the point (a test that asserts nothing). This line tells it, and later the reviewer, what actually matters.
 - **Boundaries are explicit**: which files it may touch; no commits; no moving the ticket.
 - **Tickets that touch a live service keep downtime short.** Finish backups, large transfers and long tests before stopping services. Between stop and restart, only switch files and run essential checks; give every remote connection and transfer a timeout. After restart, confirm each service and scheduled job is running. One worker stopped a whole group of production services, then started copying a large backup; it hung, and production was down for 19 minutes.
+- **Deploy whole components**: replace the entire component exactly from a specific main-branch commit (including removing deleted files), never hand-pick files. Automatically run a drift check covering that component after deployment.
 - **Write two, dispatch one.** Only tickets that can run now go in `open/`. The next one usually depends on the open questions in the last receipt.
 
 ## 3. Dispatch
@@ -118,6 +122,8 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
    > You are the worker for one ticket. You run headless: nobody can answer questions. Ticket: <absolute ticket path> (already claimed for you; it stays in _tickets/doing/). Workdir: <absolute workdir path>; run every command there, cd into it first. Read the whole ticket, then every file it lists. Do exactly what it asks, nothing outside its scope. Irreversible actions (deleting data or directories, force-push, sending messages) only if the ticket says so; otherwise list them under open questions. If something is unclear, list it; do not guess. Do not write scripts that walk directories and rewrite file contents; name each file you change. Do not open non-text files such as databases, images or archives unless the ticket names them. Stop any background process you started before you finish. Do not move the ticket. Do not commit unless the ticket says so. Never merge any other branch or PR. When done, write the receipt to <absolute receipt path> following <absolute receipt template path>, in the ticket's language. Engine line: <tool / model>. For every acceptance check, paste the exact command and its unedited output. Never invent output.
 
 3. **Wait in the background.** A ticket often takes minutes to tens of minutes. Right after dispatching, start a wait command as a background task of your own tool (in Claude Code, a background Bash command) that ends when the worker's `.status` file shows `exit=`, or after at most 60 minutes, for example `for i in $(seq 120); do grep -q '^exit=' _receipts/<ticket>.status && break; sleep 30; done`. Its completion notice wakes you, so you do not need to sit and poll; one wait per running worker. If it wakes you without an `exit=` line, check whether the worker is still alive (is its run log still growing?): if yes, start another wait; if not, treat the ticket as failed. The worker itself stays detached, so a session restart does not stop it. When woken, read the receipt. Do not report or guess the result before you have read the receipt.
+
+4. **The manager decides recovery**: preserve logs and partial work and move the ticket to `blocked/`. After a network interruption, the manager may resume later in the original session with the same model; the script must not retry. Ask the user before changing a session's model; even with approval, use a fresh session for the new model.
 
 ## 4. Rules for parallel dispatch
 
@@ -133,10 +139,11 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 
 A receipt is a claim, not evidence.
 
-1. **Rerun every acceptance command** and compare with the pasted output.
-2. **Check the scope of the change**: with git, `git status` and `git diff`; without git, read every file the receipt lists. Did it touch only what was allowed? Anything deleted or rewritten that should not be?
-3. **Look at the real thing** when there is one: open the page, call the endpoint, take a screenshot.
-4. **Read the open questions.** They are often the most useful part.
+1. **For ranking, scoring and reports, check data coverage first**: measure how many target records have values for each key field. Reject changes when heavily weighted fields lack sufficient coverage; do not accept on the promise that data will fill in later. Code review does not establish data sufficiency.
+2. **Rerun every acceptance command** and compare with the pasted output.
+3. **Check the scope of the change**: with git, `git status` and `git diff`; without git, read every file the receipt lists. Did it touch only what was allowed? Anything deleted or rewritten that should not be?
+4. **Look at the real thing** when there is one: open the page, call the endpoint, take a screenshot.
+5. **Read the open questions.** They are often the most useful part.
 
 Fail: write a follow-up ticket (T<N>b) with the concrete failure and dispatch it. Do not quietly fix it yourself.
 Pass: if the project uses git, make one commit that names the ticket.
@@ -158,6 +165,8 @@ Append your verdicts to the end of the review report.
 
 ## 8. Close
 
+When work is cancelled or the decision changes, follow project rules to handle both changes already on main (revert) and pending PRs, so another PR cannot bring withdrawn changes back. At each day's close, dispatch a reconciliation ticket for main, production and local state; explain and handle each difference, not just close tickets.
+
 Move the ticket from `doing/` to `done/`. Tell the user in plain words: what works now, what they may notice, what risk remains.
 
 ## 9. Unattended mode
@@ -176,7 +185,7 @@ Use this when the user hands over a stretch of work and leaves: "I'm off for the
 - After every closed ticket, add one line to `_receipts/progress.md`: time, ticket, result, worker cost. The user can read this instead of asking how it is going.
 - Your session can end at any time (usage limit, restart). Keep `queue.md` and `progress.md` current after every ticket so a new session can pick up from them. When a session starts and `handoff.md` shows unfinished work, read these two files first and continue.
 - Do not widen the scope. New ideas go into `queue.md` as proposals; do not start them.
-- Stop when the queue is empty, only blocked tickets are left, the budget or stop time is reached, or the same ticket has failed twice (move it to `blocked/` with the reason).
+- Stop when the queue is empty, only blocked tickets are left, the budget or stop time is reached, or a ticket fails again after manager-authorized recovery (the first worker failure already stops that ticket and notifies the manager under section 3; after another failure, do not resume again, move it to `blocked/` with the reason).
 
 **When you stop normally (queue done, budget or stop time reached), or when you are resumed after an interruption,** write `_receipts/report-<date>.md` and tell them in plain words: what works now; what is not done; what is waiting for their decision (one line each, with your recommendation); what went wrong; worker costs. You cannot see your own Claude usage; say so rather than guess.
 
