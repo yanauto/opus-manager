@@ -125,7 +125,11 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 - The next two apply only when the user lets workers open PRs or release:
   - Put `Ticket: T<N>` in every PR description. Before merging, verify that it matches the current ticket; reject the merge if it does not. If workers may merge, put a command wrapper in front of their merge tool to enforce the same check.
   - Only one ticket may release the same project at a time. The release script first claims an atomic `mkdir` lock that records its owner and expiry; wait if it cannot claim the lock, and take over only after expiry. Release it after deployment and live checks finish.
+  - Deploy whole components from a commit on the main branch, never single files copied by hand. After deploying, compare what is live with that commit; fix any drift or record it.
+  - When a change is cancelled, take it out everywhere: from the main branch if it was already merged, and from every open PR that carries it. Check each one.
+  - At the end of each day (in unattended mode, when you stop), compare the main branch, what is live and your local copy. Write down every difference and which side is right.
 - Run multi-step build, review, fix and release chains as a detached script with `nohup` (or the system equivalent). Each ticket writes its stage, latest activity and result to status files in `_receipts/`; provide one summary command that lists every running ticket, stage, latest activity and cost.
+- To change a script that may be running (dispatch, review, a chain script, a scheduled job), write the new version to a new file in the same folder and `mv` it over the old one. Never edit it in place: bash reads a script while it runs, so a running copy can execute a mix of old and new lines.
 - When the tool reports usage (pi does), record calls, tokens and pay-per-use cost for each ticket; some tools report nothing in headless mode, so skip it there. For pay-per-use workers, a per-ticket budget is recommended: at the limit, stop, move the ticket to `blocked/`, and wait for your decision.
 - Start a fresh session for every ticket. Never continue the previous ticket's session; if one ticket passes about 300K tokens of context, write its receipt and put the rest in a new ticket.
 
@@ -137,8 +141,9 @@ A receipt is a claim, not evidence.
 2. **Check the scope of the change**: with git, `git status` and `git diff`; without git, read every file the receipt lists. Did it touch only what was allowed? Anything deleted or rewritten that should not be?
 3. **Look at the real thing** when there is one: open the page, call the endpoint, take a screenshot.
 4. **Read the open questions.** They are often the most useful part.
+5. **Changes to ranking, scoring or reports:** before accepting, count how many rows have the key fields they depend on, before and after the change. A ranking can look right while most rows are missing the field it sorts on.
 
-Fail: write a follow-up ticket (T<N>b) with the concrete failure and dispatch it. Do not quietly fix it yourself.
+Fail (non-zero exit, no receipt, or a check that does not pass): that ticket stops. Do not rerun it automatically, do not switch it to another worker, and do not quietly fix it yourself. You decide the recovery: write a follow-up ticket (T<N>b) with the concrete failure and dispatch it. Dispatch and chain scripts never retry or fall back on their own; they record the failure and stop.
 Pass: if the project uses git, make one commit that names the ticket.
 
 ## 6. Review with a different vendor
@@ -176,7 +181,7 @@ Use this when the user hands over a stretch of work and leaves: "I'm off for the
 - After every closed ticket, add one line to `_receipts/progress.md`: time, ticket, result, worker cost. The user can read this instead of asking how it is going.
 - Your session can end at any time (usage limit, restart). Keep `queue.md` and `progress.md` current after every ticket so a new session can pick up from them. When a session starts and `handoff.md` shows unfinished work, read these two files first and continue.
 - Do not widen the scope. New ideas go into `queue.md` as proposals; do not start them.
-- Stop when the queue is empty, only blocked tickets are left, the budget or stop time is reached, or the same ticket has failed twice (move it to `blocked/` with the reason).
+- Stop when the queue is empty, only blocked tickets are left, the budget or stop time is reached, or the same ticket has failed twice (move it to `blocked/` with the reason). The first failure already stops that ticket (section 5); only a follow-up ticket you write may run it again. If that fails too, it counts as the second.
 
 **When you stop normally (queue done, budget or stop time reached), or when you are resumed after an interruption,** write `_receipts/report-<date>.md` and tell them in plain words: what works now; what is not done; what is waiting for their decision (one line each, with your recommendation); what went wrong; worker costs. You cannot see your own Claude usage; say so rather than guess.
 
@@ -184,5 +189,6 @@ Use this when the user hands over a stretch of work and leaves: "I'm off for the
 
 - Workers never move tickets, never commit, never review their own work, and never merge another ticket.
 - Workers never write scripts that walk directories and rewrite file contents, and never open non-text files unless the ticket names them.
+- Start your manager session from the project root, and create every scheduled job (cron, launchd, Task Scheduler) with the project root as its working directory, so that `_tickets/` and `_receipts/` point at this project.
 - When the user cuts in mid-task, decide whether it is a new decision or a passing remark. Change the plan only for a new decision; do not tear up the whole plan over one sentence.
 - Ask the user before installing software, before paid trial runs, before giving a worker edit-without-asking rights, and before handing the code to a new worker.
