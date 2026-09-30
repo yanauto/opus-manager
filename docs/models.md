@@ -49,6 +49,20 @@ This is a Chinese-internet meme: it comes from the overseas Tier List format and
 
 夯爆了 and 拉 are the two tiers we added to the meme's original five. The tone is a joke; the facts behind each tier are governed by the field notes above, and cover a single project, a small sample, on 09-30 only.
 
+**Tier standards**
+
+| Tier | Hard standard |
+|---|---|
+| 夯爆了 (S+) | Did something others could not, backed by numbers or a concrete case; without it the result is clearly worse |
+| 夯 (S) | Fast and good enough to be a main worker; small flaws that do not get in the way |
+| 顶级 (A) | Very strong, but with one clear weakness (cost, slowness, occasional absence, needs watching) |
+| 人上人 (B) | Good enough and does not make mistakes; has highlights but does not amaze |
+| NPC (C) | Makes little difference either way; runs and is honest, but never showed it did more |
+| 拉 (D) | Causes trouble and needs cleanup; its cost or rework outweighs its benefit |
+| 拉完了 (F) | Showing up is the same as not showing up, or it makes things worse; there is concrete counter-evidence |
+
+If the evidence is not enough, write "not rated" rather than forcing a tier; the tone is aggressive, the facts are not. (Giving each tier a hard standard is borrowed from the GitHub project Nplace-su/jev-father.)
+
 | Model | Used for | Tier | One-line reason |
 |---|---|---|---|
 | GLM 5.3 Flash | Review | 夯爆了 (S+) | On a change the author's own tests all passed, it caught that an internal read-only API still returned residence data for hidden resumes; nearly every finding held up and none were padding |
