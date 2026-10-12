@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工作进度</title>
+<style>
+  :root { --bg:#fafaf8; --ink:#2c2c2a; --sub:#5f5e5a; --line:#888780;
+    --done-f:#EAF3DE; --done-s:#3B6D11; --done-t:#27500A;
+    --run-f:#FAEEDA;  --run-s:#854F0B;  --run-t:#633806;
+    --wait-f:#F1EFE8; --wait-s:#888780; --wait-t:#444441;
+    --merge-f:#E1F5EE; --merge-s:#0F6E56; --merge-t:#085041;
+    --stop-f:#FCEBEB; --stop-s:#A32D2D; --stop-t:#791F1F; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#1c1c1a; --ink:#e8e6df; --sub:#b4b2a9; --line:#888780;
+    --done-f:#27500A; --done-s:#97C459; --done-t:#EAF3DE;
+    --run-f:#633806;  --run-s:#EF9F27;  --run-t:#FAEEDA;
+    --wait-f:#2C2C2A; --wait-s:#888780; --wait-t:#D3D1C7;
+    --merge-f:#085041; --merge-s:#5DCAA5; --merge-t:#E1F5EE;
+    --stop-f:#791F1F; --stop-s:#F09595; --stop-t:#FCEBEB; } }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,"PingFang SC",sans-serif; }
+  .wrap { max-width:720px; margin:0 auto; padding:16px; }
+  h1 { font-size:18px; font-weight:500; margin:4px 0 2px; }
+  .sub { font-size:13px; color:var(--sub); margin-bottom:8px; }
+  svg text { font-family:-apple-system,"PingFang SC",sans-serif; }
+  .h { font-size:14px; font-weight:500; fill:var(--ink); }
+  .t { font-size:14px; font-weight:500; }
+  .s { font-size:12px; }
+  .done rect { fill:var(--done-f); stroke:var(--done-s); } .done .t { fill:var(--done-t); } .done .s { fill:var(--done-s); }
+  .run rect  { fill:var(--run-f);  stroke:var(--run-s); }  .run .t  { fill:var(--run-t); }  .run .s  { fill:var(--run-s); }
+  .wait rect { fill:var(--wait-f); stroke:var(--wait-s); } .wait .t { fill:var(--wait-t); } .wait .s { fill:var(--sub); }
+  .merge rect{ fill:var(--merge-f);stroke:var(--merge-s);} .merge .t{ fill:var(--merge-t);} .merge .s{ fill:var(--merge-s);}
+  .stop rect { fill:var(--stop-f); stroke:var(--stop-s); } .stop .t { fill:var(--stop-t); } .stop .s { fill:var(--stop-s); }
+  .arr { stroke:var(--line); stroke-width:1.2; fill:none; }
+  .lg { font-size:12px; fill:var(--sub); }
+</style>
+</head>
+<body>
+<!-- 经理维护：进度变了只改相关 <g id> 的 class（done/run/wait/stop/merge）和文字，再改顶部时间；不要整张重画 -->
+<div class="wrap">
+<h1>工作进度</h1>
+<div class="sub" id="updated">更新：2026-01-01 10:00</div>
+<svg width="100%" viewBox="0 0 680 460" role="img" aria-label="工作进度">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+<text class="h" x="120" y="40" text-anchor="middle">T01 登录修复</text>
+<g id="t01a" class="done"><rect x="30" y="60" width="180" height="56" rx="8" stroke-width="0.8"/><text class="t" x="120" y="81" text-anchor="middle">施工</text><text class="s" x="120" y="102" text-anchor="middle">DeepSeek</text></g>
+<g id="t01b" class="done"><rect x="30" y="140" width="180" height="56" rx="8" stroke-width="0.8"/><text class="t" x="120" y="161" text-anchor="middle">换家审查</text><text class="s" x="120" y="182" text-anchor="middle">GLM 提 2 条</text></g>
+<line class="arr" x1="120" y1="116" x2="120" y2="138" marker-end="url(#a)"/>
+<g id="t01c" class="run"><rect x="30" y="220" width="180" height="56" rx="8" stroke-width="0.8"/><text class="t" x="120" y="241" text-anchor="middle">核实并修</text><text class="s" x="120" y="262" text-anchor="middle">2 条都成立</text></g>
+<line class="arr" x1="120" y1="196" x2="120" y2="218" marker-end="url(#a)"/>
+<g id="t01d" class="wait"><rect x="30" y="300" width="180" height="56" rx="8" stroke-width="0.8"/><text class="t" x="120" y="321" text-anchor="middle">验收</text><text class="s" x="120" y="342" text-anchor="middle">重跑验收命令</text></g>
+<line class="arr" x1="120" y1="276" x2="120" y2="298" marker-end="url(#a)"/>
+<line class="arr" x1="120" y1="356" x2="120" y2="358" marker-end="url(#a)"/>
+<text class="h" x="340" y="40" text-anchor="middle">T02 导出 CSV</text>
+<g id="t02a" class="run"><rect x="250" y="60" width="180" height="56" rx="8" stroke-width="0.8"/><text class="t" x="340" y="81" text-anchor="middle">施工</text><text class="s" x="340" y="102" text-anchor="middle">开发中</text></g>
+<g id="t02b" class="wait"><rect x="250" y="140" width="180" height="56" rx="8" stroke-width="0.8"/><text class="t" x="340" y="161" text-anchor="middle">换家审查</text><text class="s" x="340" y="182" text-anchor="middle">等施工</text></g>
+<line class="arr" x1="340" y1="116" x2="340" y2="138" marker-end="url(#a)"/>
+<line class="arr" x1="340" y1="196" x2="340" y2="358" marker-end="url(#a)"/>
+<text class="h" x="560" y="40" text-anchor="middle">T03 文档</text>
+<g id="t03a" class="done"><rect x="470" y="60" width="180" height="56" rx="8" stroke-width="0.8"/><text class="t" x="560" y="81" text-anchor="middle">施工</text><text class="s" x="560" y="102" text-anchor="middle">已完成</text></g>
+<g id="t03b" class="stop"><rect x="470" y="140" width="180" height="56" rx="8" stroke-width="0.8"/><text class="t" x="560" y="161" text-anchor="middle">要你拍板</text><text class="s" x="560" y="182" text-anchor="middle">标题怎么写</text></g>
+<line class="arr" x1="560" y1="116" x2="560" y2="138" marker-end="url(#a)"/>
+<g id="ship" class="wait"><rect x="30" y="360" width="620" height="44" rx="8" stroke-width="0.8"/><text class="t" x="340" y="387" text-anchor="middle">一起上线（T01 + T02）</text></g>
+<g class="done"><rect x="110" y="424" width="14" height="14" rx="3"/></g><text class="lg" x="130" y="435">已完成</text>
+<g class="run"><rect x="210" y="424" width="14" height="14" rx="3"/></g><text class="lg" x="230" y="435">进行中</text>
+<g class="wait"><rect x="310" y="424" width="14" height="14" rx="3"/></g><text class="lg" x="330" y="435">排队中</text>
+<g class="stop"><rect x="430" y="424" width="14" height="14" rx="3"/></g><text class="lg" x="450" y="435">卡住/要拍板</text>
+<g class="merge"><rect x="550" y="424" width="14" height="14" rx="3"/></g><text class="lg" x="570" y="435">汇合上线</text>
+</svg>
+</div>
+</body>
+</html>
