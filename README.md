@@ -138,6 +138,8 @@ Claude agrees with you on what it may do without asking, writes the queue to `_t
 
 Let it run. Cutting in mid-task makes Claude stop and verify what you said, which costs quota. Speak up for real decisions; keep passing thoughts for later.
 
+Want to dispatch work while you are out? See [Dispatch work to Claude from personal WeChat](docs/wechat-remote.md), especially the prompt-cache section: waking a long conversation overnight is expensive.
+
 ## Status
 
 - macOS: full workflow used daily.
