@@ -184,5 +184,9 @@ Use this when the user hands over a stretch of work and leaves: "I'm off for the
 
 - Workers never move tickets, never commit, never review their own work, and never merge another ticket.
 - Workers never write scripts that walk directories and rewrite file contents, and never open non-text files unless the ticket names them.
+- When the user changes a decision (overrules what was agreed earlier), stop the tickets still working to the old one right away, amend the ticket and resume in the same session; do not let them finish and redo the work.
+- Write authorizations in the agreed exact words: any extra action you want a worker to take (running replays, rehearsals, releasing) must be spelled out with its scope in the wording your rules expect; "replay it during verification" alone gets skipped under the default rules.
+- When a worker is unsure about an API parameter or how a third-party model or platform works, the ticket tells it to check the official docs or official SDK first, and to go back to the docs after two failed tries instead of guessing values one by one.
+- Complexity must pay for itself: before dispatching or accepting an AI-proposed improvement, ask three questions — has this problem really happened? How many new states, switches or files does it add? What happens if we do not do it? If the benefit is unclear, do not do it; delete before you add.
 - When the user cuts in mid-task, decide whether it is a new decision or a passing remark. Change the plan only for a new decision; do not tear up the whole plan over one sentence.
 - Ask the user before installing software, before paid trial runs, before giving a worker edit-without-asking rights, and before handing the code to a new worker.
