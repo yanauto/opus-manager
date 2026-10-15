@@ -121,6 +121,8 @@ Follow `templates/ticket.md`, save as `_tickets/open/T<N>-<slug>.md`.
 
 ## 4. Rules for parallel dispatch
 
+- **Split tickets by one complete job, not by code area (Conway's law)**: a system ends up shaped like the way its builders split work and hand it off; in parallel work each ticket is fast inside and the bugs grow at the handoffs. Changes on the same flow (its rules, data and sending, say) go to one worker or are queued; run in parallel only what is truly independent (different components, no shared data or definitions); when unsure, run serially. Parallel tickets state "what is not yours and what the other ticket is changing".
+- **One ticket at a time per deployable unit; once merged, ship it**: two tickets on the same component block each other's releases, and the bugs appear where they combine. Do not leave a merged change waiting to "ship later" — it blocks every later ticket on that component; if it cannot ship, revert it first.
 - Run tickets in parallel only when their changes do not overlap. Give each ticket its own branch and work directory (in a git project, `git worktree`). Only you merge, one ticket at a time, after acceptance; even a worker allowed to commit commits only to its own branch and never merges another branch: that ticket may not have been fixed after review yet.
 - The next two apply only when the user lets workers open PRs or release:
   - Put `Ticket: T<N>` in every PR description. Before merging, verify that it matches the current ticket; reject the merge if it does not. If workers may merge, put a command wrapper in front of their merge tool to enforce the same check.
