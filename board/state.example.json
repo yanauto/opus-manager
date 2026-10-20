@@ -1,0 +1,49 @@
+{
+  "workers": [
+    {
+      "task": "ticket-101",
+      "title": "搜索接口加了缓存，重复请求打到一个进程",
+      "role": "builder",
+      "model": "DeepSeek",
+      "stage": "施工中",
+      "startedMinutesAgo": 26,
+      "minutesAgo": 3
+    },
+    {
+      "task": "ticket-102",
+      "title": "首屏文案按新口径改一遍",
+      "role": "prompt",
+      "model": "DeepSeek",
+      "stage": "等审查",
+      "startedMinutesAgo": 51,
+      "minutesAgo": 22
+    },
+    {
+      "task": "ticket-99",
+      "title": "线上偶发 502，先只读查根因",
+      "role": "scout",
+      "model": "GLM",
+      "stage": "取证",
+      "startedMinutesAgo": 96,
+      "minutesAgo": 47
+    }
+  ],
+  "queue": [
+    {
+      "batch": "batch-7",
+      "status": "running",
+      "note": "一次上线，卡在 PR 等审查员",
+      "items": ["ticket-101", "ticket-102"]
+    },
+    {
+      "batch": "batch-8",
+      "status": "waiting",
+      "items": ["ticket-104"]
+    }
+  ],
+  "today": [
+    { "task": "ticket-98", "role": "builder", "model": "DeepSeek", "status": "done", "minutesAgo": 132 },
+    { "task": "ticket-97", "role": "reviewer", "model": "GLM", "status": "done", "minutesAgo": 188 },
+    { "task": "ticket-96", "role": "releaser", "model": "GPT-6.1", "status": "done", "minutesAgo": 264 }
+  ]
+}

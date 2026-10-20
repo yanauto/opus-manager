@@ -1,5 +1,9 @@
 .DS_Store
 
+# Board: your own seats and state stay local
+board/state.json
+board/config.json
+
 # Never commit credentials or AI session logs
 .env
 .env.*

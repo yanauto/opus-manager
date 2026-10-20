@@ -1,0 +1,12 @@
+{
+  "lang": "zh",
+  "title": "工单看板",
+  "seats": [
+    { "id": "releaser", "name": "发布员", "group": "发布席", "scope": "合并、分批上线、线上验证", "defaultModel": "GPT-6.1" },
+    { "id": "builder", "name": "后端工程师", "group": "力工", "scope": "接口、数据通路、后端修复", "defaultModel": "DeepSeek" },
+    { "id": "prompt", "name": "提示词工程师", "group": "力工", "scope": "对话、提示词、话术", "defaultModel": "DeepSeek" },
+    { "id": "frontend", "name": "前端工程师", "group": "力工", "scope": "页面、视觉与交互", "defaultModel": "Gemini" },
+    { "id": "scout", "name": "侦查员", "group": "调查席", "scope": "只读调查、根因与资料核实", "defaultModel": "GLM" },
+    { "id": "reviewer", "name": "审查员", "group": "审查席", "scope": "异族审查，核心链路加复审", "defaultModel": "GLM" }
+  ]
+}

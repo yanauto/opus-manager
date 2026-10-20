@@ -136,6 +136,16 @@ Copy-Item -Recurse opus-manager\skill\zh\opus-manager "$env:USERPROFILE\.claude\
 
 Claude 会先和你定好哪些事可以不问直接做，把顺序写进 `_tickets/queue.md`，每做完一张单在 `_receipts/progress.md` 记一行，你看这个文件就知道进度，不用再问。
 
+## 看板（可选）
+
+不想翻文件的话，仓库里带了一块本机看板：几路在干活、各走到哪一步、多久没动静、队列里排着什么。
+
+```bash
+node board/server.mjs   # → http://127.0.0.1:3999
+```
+
+它只读一个 JSON 文件，不派活、不联网。让 Claude 在派单和交回执时顺手写一行，看板自己每 15 秒刷新。说明见 [board/README.zh-CN.md](board/README.zh-CN.md)。
+
 ## 建议
 
 放手让它托管。中途插话会让 Claude 停下来核实你说的话，反而消耗额度。有新决定再说，临时的想法先记下来。

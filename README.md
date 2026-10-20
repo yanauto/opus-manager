@@ -134,6 +134,16 @@ To leave it running, say so:
 
 Claude agrees with you on what it may do without asking, writes the queue to `_tickets/queue.md`, and keeps a one-line-per-ticket log in `_receipts/progress.md` that you can read instead of asking how it is going.
 
+## Board (optional)
+
+If you would rather not read files: the repo ships a local board showing how many workers are running, how far each got, how long one has been quiet, and what is queued.
+
+```bash
+node board/server.mjs   # → http://127.0.0.1:3999
+```
+
+It reads one JSON file. No dispatching, no network. Have Claude write a line into it on dispatch and on hand-back; the board refreshes itself every 15 seconds. See [board/README.md](board/README.md).
+
 ## Tip
 
 Let it run. Cutting in mid-task makes Claude stop and verify what you said, which costs quota. Speak up for real decisions; keep passing thoughts for later.
